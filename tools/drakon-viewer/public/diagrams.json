@@ -1,0 +1,22 @@
+[
+  {
+    "step": "example-step",
+    "name": "Example Workflow",
+    "path": "/diagrams/example_workflow.json"
+  },
+  {
+    "step": "bot-service",
+    "name": "Bot Core Flow",
+    "path": "/diagrams/bot-core-flow.json"
+  },
+  {
+    "step": "bot-service",
+    "name": "Message Handler Flow",
+    "path": "/diagrams/message-handler-flow.json"
+  },
+  {
+    "step": "bot-service",
+    "name": "Claude Integration Flow",
+    "path": "/diagrams/claude-integration-flow.json"
+  }
+]

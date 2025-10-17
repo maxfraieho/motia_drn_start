@@ -1,0 +1,87 @@
+{
+  "name": "Claude Integration Flow",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Receive Request",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Check Claude Availability",
+      "one": "4"
+    },
+    "4": {
+      "type": "question",
+      "content": "Service Available?",
+      "one": "5",
+      "two": "13"
+    },
+    "5": {
+      "type": "action",
+      "content": "Create Session",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Load Context (MCP Servers)",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "Send Message to Claude SDK",
+      "one": "8"
+    },
+    "8": {
+      "type": "question",
+      "content": "Success?",
+      "one": "9",
+      "two": "14"
+    },
+    "9": {
+      "type": "action",
+      "content": "Parse Response",
+      "one": "10"
+    },
+    "10": {
+      "type": "action",
+      "content": "Store Session",
+      "one": "11"
+    },
+    "11": {
+      "type": "action",
+      "content": "Return Response",
+      "one": "12"
+    },
+    "12": {
+      "type": "end"
+    },
+    "13": {
+      "type": "action",
+      "content": "Return Unavailable Error",
+      "one": "12"
+    },
+    "14": {
+      "type": "action",
+      "content": "Handle Error & Retry",
+      "one": "15"
+    },
+    "15": {
+      "type": "question",
+      "content": "Retries Left?",
+      "one": "7",
+      "two": "16"
+    },
+    "16": {
+      "type": "action",
+      "content": "Return Error",
+      "one": "12"
+    }
+  }
+}

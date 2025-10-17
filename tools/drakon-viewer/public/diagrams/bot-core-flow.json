@@ -1,0 +1,60 @@
+{
+  "name": "Bot Core Flow",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Initialize Bot",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Load Configuration",
+      "one": "4"
+    },
+    "4": {
+      "type": "question",
+      "content": "Valid Config?",
+      "one": "5",
+      "two": "11"
+    },
+    "5": {
+      "type": "action",
+      "content": "Setup Middleware (Auth, Rate Limit, Security)",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Register Handlers (Command, Callback, Message)",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "Initialize Claude Integration",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Start Bot Polling",
+      "one": "9"
+    },
+    "9": {
+      "type": "action",
+      "content": "Listen for Updates",
+      "one": "10"
+    },
+    "10": {
+      "type": "end"
+    },
+    "11": {
+      "type": "action",
+      "content": "Log Error & Exit",
+      "one": "10"
+    }
+  }
+}

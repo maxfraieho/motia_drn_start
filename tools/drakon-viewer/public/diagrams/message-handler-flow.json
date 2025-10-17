@@ -1,0 +1,94 @@
+{
+  "name": "Message Handler Flow",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Receive Message",
+      "one": "3"
+    },
+    "3": {
+      "type": "question",
+      "content": "User Authorized?",
+      "one": "4",
+      "two": "15"
+    },
+    "4": {
+      "type": "question",
+      "content": "Rate Limit OK?",
+      "one": "5",
+      "two": "16"
+    },
+    "5": {
+      "type": "action",
+      "content": "Parse Message",
+      "one": "6"
+    },
+    "6": {
+      "type": "question",
+      "content": "Is Command?",
+      "one": "7",
+      "two": "8"
+    },
+    "7": {
+      "type": "action",
+      "content": "Route to Command Handler",
+      "one": "14"
+    },
+    "8": {
+      "type": "question",
+      "content": "Conversation Mode Active?",
+      "one": "9",
+      "two": "14"
+    },
+    "9": {
+      "type": "action",
+      "content": "Send to Claude API",
+      "one": "10"
+    },
+    "10": {
+      "type": "question",
+      "content": "Claude Available?",
+      "one": "11",
+      "two": "17"
+    },
+    "11": {
+      "type": "action",
+      "content": "Get Response from Claude",
+      "one": "12"
+    },
+    "12": {
+      "type": "action",
+      "content": "Format Response",
+      "one": "13"
+    },
+    "13": {
+      "type": "action",
+      "content": "Send to User",
+      "one": "14"
+    },
+    "14": {
+      "type": "end"
+    },
+    "15": {
+      "type": "action",
+      "content": "Send Auth Error",
+      "one": "14"
+    },
+    "16": {
+      "type": "action",
+      "content": "Send Rate Limit Error",
+      "one": "14"
+    },
+    "17": {
+      "type": "action",
+      "content": "Send Availability Error",
+      "one": "14"
+    }
+  }
+}
