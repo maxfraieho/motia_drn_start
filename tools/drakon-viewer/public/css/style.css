@@ -1,0 +1,110 @@
+:root {
+    --bg-color: #1a1b26;
+    --sidebar-bg: #24283b;
+    --text-color: #c0caf5;
+    --header-color: #a9b1d6;
+    --accent-color: #7aa2f7;
+    --hover-bg: #414868;
+    --border-color: #414868;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+}
+
+.sidebar {
+    width: 300px;
+    background-color: var(--sidebar-bg);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    border-right: 1px solid var(--border-color);
+}
+
+.sidebar h1 {
+    color: var(--header-color);
+    font-size: 1.5em;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#diagram-nav details {
+    margin-bottom: 15px;
+}
+
+#diagram-nav summary {
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+#diagram-nav summary:hover {
+    background-color: var(--hover-bg);
+}
+
+#diagram-nav ul {
+    list-style: none;
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+#diagram-nav li a {
+    color: var(--text-color);
+    text-decoration: none;
+    display: block;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#diagram-nav li a:hover {
+    background-color: var(--hover-bg);
+}
+
+#diagram-nav li a.active {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    font-weight: bold;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-content h2 {
+    color: var(--header-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#drakon-container {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: #fff; /* DrakonWidget requires a light background */
+    overflow: auto;
+}
+
+.error {
+    color: #f7768e;
+    padding: 10px;
+}

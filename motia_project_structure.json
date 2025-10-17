@@ -1,0 +1,60 @@
+{
+  "project_root": {
+    "name": "motia-project",
+    "folders": {
+      "steps": {
+        "description": "Містить всі кроки проекту",
+        "subfolders": {
+          "api": {
+            "description": "HTTP API кроки"
+          },
+          "events": {
+            "description": "Event-driven кроки"
+          },
+          "streams": {
+            "description": "Real-time streaming кроки"
+          },
+          "cron": {
+            "description": "Scheduled задачі"
+          }
+        }
+      },
+      "templates": {
+        "description": "Шаблони для генерації коду",
+        "files": [
+          "step-template.ts",
+          "api-template.ts",
+          "event-template.ts"
+        ]
+      },
+      "schemas": {
+        "description": "JSON схеми для валідації",
+        "files": [
+          "step-schema.json",
+          "config-schema.json"
+        ]
+      },
+      "diagrams": {
+        "description": "ДРАКОН діаграми для всього проекту",
+        "subfolders": {
+          "project-overview": {
+            "description": "Загальна архітектура проекту"
+          },
+          "step-interactions": {
+            "description": "Взаємодія між кроками"
+          },
+          "data-flow": {
+            "description": "Потік даних через систему"
+          }
+        }
+      },
+      "config": {
+        "description": "Конфігураційні файли",
+        "files": [
+          "motia.json",
+          "environment.json"
+        ]
+      }
+    }
+  }
+}

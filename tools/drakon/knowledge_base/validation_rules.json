@@ -1,0 +1,371 @@
+{
+  "version": "1.0",
+  "source": "DRAKON Official Specification + Research 2025-10-10",
+  "format_validation": {
+    "drn_format": {
+      "required_tables": [
+        "info",
+        "state",
+        "diagrams",
+        "items"
+      ],
+      "optional_tables": [
+        "diagram_info",
+        "tree_nodes"
+      ],
+      "required_metadata": {
+        "info.type": "drakon",
+        "info.version": "5",
+        "info.start_version": "1"
+      }
+    },
+    "json_format": {
+      "required_fields": {
+        "diagram_level": ["name", "access", "items"],
+        "item_level": ["type"]
+      },
+      "optional_fields": {
+        "diagram_level": ["params", "style"],
+        "item_level": ["content", "secondary", "link", "one", "two", "side", "flag1", "branchId", "margin", "style"]
+      },
+      "field_types": {
+        "access": ["read", "write"],
+        "items": "object (not array!)",
+        "style": "JSON string (not object!)"
+      }
+    }
+  },
+  "structural_constraints": [
+    {
+      "rule_id": "STRUCT-001",
+      "severity": "CRITICAL",
+      "rule": "must_have_branch",
+      "description": "Every diagram must contain at least one branch icon",
+      "check": "items must contain at least one element with type='branch'",
+      "error_message": "Diagram has no branch header. Every DRAKON diagram requires at least one branch.",
+      "fix": "Add a branch icon as the first element of the diagram"
+    },
+    {
+      "rule_id": "STRUCT-002",
+      "severity": "ERROR",
+      "rule": "branch_must_be_first",
+      "description": "Branch with lowest branchId is the execution start",
+      "check": "Find branch with minimum branchId value",
+      "error_message": "Cannot determine diagram start point",
+      "fix": "Ensure branch icons have sequential branchId values starting from 0"
+    },
+    {
+      "rule_id": "STRUCT-003",
+      "severity": "ERROR",
+      "rule": "question_two_outputs",
+      "description": "Question icons must have exactly 2 outputs",
+      "check": "Question icons must have both 'one' AND 'two' fields",
+      "error_message": "Question icon {id} missing required branch (one or two)",
+      "fix": "Add both 'one' (down) and 'two' (right) connections to question icon"
+    },
+    {
+      "rule_id": "STRUCT-004",
+      "severity": "WARNING",
+      "rule": "end_no_outputs",
+      "description": "End icons should not have outgoing connections",
+      "check": "End icons should NOT have 'one' or 'two' fields",
+      "error_message": "End icon {id} has outgoing connections",
+      "fix": "Remove 'one' and 'two' fields from end icon"
+    },
+    {
+      "rule_id": "STRUCT-005",
+      "severity": "ERROR",
+      "rule": "select_followed_by_cases",
+      "description": "Select icon must be followed by case icons",
+      "check": "After select icon, verify presence of 2+ case icons",
+      "error_message": "Select icon {id} not followed by case icons",
+      "fix": "Add case icons immediately after select icon"
+    },
+    {
+      "rule_id": "STRUCT-006",
+      "severity": "ERROR",
+      "rule": "loop_pairs_match",
+      "description": "Loop begin/end must be properly paired",
+      "check": "Each loopbegin must have corresponding loopend",
+      "error_message": "Unmatched loop construct",
+      "fix": "Ensure loopbegin and loopend are properly paired"
+    }
+  ],
+  "topological_constraints": [
+    {
+      "rule_id": "TOPO-001",
+      "severity": "WARNING",
+      "rule": "no_line_intersections",
+      "description": "Lines should not intersect (visual clarity)",
+      "check": "Detect geometric line intersections",
+      "error_message": "Lines intersect at coordinates ({x}, {y})",
+      "fix": "Adjust icon positions or add intermediate connection points"
+    },
+    {
+      "rule_id": "TOPO-002",
+      "severity": "WARNING",
+      "rule": "royal_road_vertical",
+      "description": "Main path should be vertical (Royal Road principle)",
+      "check": "Primary execution flow uses 'one' links vertically",
+      "error_message": "Main path deviates from vertical alignment",
+      "fix": "Arrange primary flow icons in vertical column"
+    },
+    {
+      "rule_id": "TOPO-003",
+      "severity": "WARNING",
+      "rule": "branches_right_only",
+      "description": "Branches should extend to the right only",
+      "check": "Icons connected via 'two' should be positioned to the right",
+      "error_message": "Branch extends to the left (anti-pattern)",
+      "fix": "Position branch icons to the right of main flow"
+    },
+    {
+      "rule_id": "TOPO-004",
+      "severity": "INFO",
+      "rule": "arrows_are_loops",
+      "description": "Upward arrows represent loops",
+      "check": "Vertical lines with up arrows should be part of loop constructs",
+      "error_message": "Upward arrow detected outside loop context",
+      "fix": "Verify this is intentional loop back-edge"
+    },
+    {
+      "rule_id": "TOPO-005",
+      "severity": "INFO",
+      "rule": "no_icons_on_sidelines",
+      "description": "Icons should not be placed on horizontal or upward lines",
+      "check": "Icons should only appear on main vertical flow",
+      "error_message": "Icon positioned on side/up line",
+      "fix": "Move icon to main vertical flow"
+    }
+  ],
+  "reference_constraints": [
+    {
+      "rule_id": "REF-001",
+      "severity": "CRITICAL",
+      "rule": "valid_one_reference",
+      "description": "The 'one' field must reference existing item",
+      "check": "item.one exists in items dictionary",
+      "error_message": "Item {id} references non-existent item {target} via 'one'",
+      "fix": "Update 'one' reference to valid item ID or remove if terminal"
+    },
+    {
+      "rule_id": "REF-002",
+      "severity": "CRITICAL",
+      "rule": "valid_two_reference",
+      "description": "The 'two' field must reference existing item",
+      "check": "item.two exists in items dictionary",
+      "error_message": "Item {id} references non-existent item {target} via 'two'",
+      "fix": "Update 'two' reference to valid item ID or remove if no branch"
+    },
+    {
+      "rule_id": "REF-003",
+      "severity": "CRITICAL",
+      "rule": "valid_side_reference",
+      "description": "The 'side' field must reference existing item",
+      "check": "item.side exists in items dictionary",
+      "error_message": "Item {id} references non-existent item {target} via 'side'",
+      "fix": "Update 'side' reference to valid item ID or remove"
+    },
+    {
+      "rule_id": "REF-004",
+      "severity": "WARNING",
+      "rule": "no_circular_references",
+      "description": "Avoid circular references except in loops",
+      "check": "Detect cycles in 'one'/'two' reference graph",
+      "error_message": "Circular reference detected: {cycle}",
+      "fix": "Break cycle or verify this is intentional loop construct"
+    },
+    {
+      "rule_id": "REF-005",
+      "severity": "WARNING",
+      "rule": "no_orphaned_items",
+      "description": "All items should be reachable from start",
+      "check": "Traverse from branch, verify all items reachable",
+      "error_message": "Orphaned items detected: {ids}",
+      "fix": "Connect orphaned items or remove if unused"
+    }
+  ],
+  "coordinate_constraints": [
+    {
+      "rule_id": "COORD-001",
+      "severity": "ERROR",
+      "rule": "half_width_height",
+      "description": "In .drn format, w and h are HALF values",
+      "check": "For 120x40 icon, verify w=60 and h=20",
+      "error_message": "Icon {id} has incorrect w/h (should be half of full size)",
+      "fix": "Divide width and height by 2 for w and h fields"
+    },
+    {
+      "rule_id": "COORD-002",
+      "severity": "ERROR",
+      "rule": "center_coordinates",
+      "description": "x and y represent geometric center in .drn",
+      "check": "Coordinates should be center of icon, not top-left",
+      "error_message": "Icon {id} coordinates may be top-left instead of center",
+      "fix": "Add (width/2, height/2) offset to convert from top-left to center"
+    },
+    {
+      "rule_id": "COORD-003",
+      "severity": "WARNING",
+      "rule": "reasonable_coordinates",
+      "description": "Coordinates should be within reasonable viewport",
+      "check": "x and y should be positive and < 10000",
+      "error_message": "Icon {id} has extreme coordinates ({x}, {y})",
+      "fix": "Verify coordinates are in reasonable range"
+    }
+  ],
+  "type_specific_rules": {
+    "branch": [
+      {
+        "rule": "required_branchId",
+        "severity": "CRITICAL",
+        "description": "Branch icons in JSON format must have branchId field",
+        "fix": "Add branchId: 0 for first branch, increment for subsequent branches"
+      }
+    ],
+    "question": [
+      {
+        "rule": "flag1_valid_values",
+        "severity": "ERROR",
+        "description": "flag1 must be 0 or 1",
+        "fix": "Set flag1=0 for YES down, flag1=1 for NO down"
+      },
+      {
+        "rule": "must_have_both_branches",
+        "severity": "CRITICAL",
+        "description": "Question must have both 'one' and 'two' connections",
+        "fix": "Add missing branch connection"
+      }
+    ],
+    "shelf": [
+      {
+        "rule": "must_have_text2",
+        "severity": "WARNING",
+        "description": "Shelf icon should have secondary text",
+        "fix": "Add text2 field for upper text area"
+      },
+      {
+        "rule": "a_parameter_distance",
+        "severity": "INFO",
+        "description": "Parameter 'a' defines distance to dividing line",
+        "fix": "Set 'a' to distance from top to horizontal divider"
+      }
+    ],
+    "input": [
+      {
+        "rule": "can_have_text2",
+        "severity": "INFO",
+        "description": "Input icon can have optional secondary text",
+        "fix": "Use text2 for additional input description"
+      }
+    ],
+    "output": [
+      {
+        "rule": "can_have_text2",
+        "severity": "INFO",
+        "description": "Output icon can have optional secondary text",
+        "fix": "Use text2 for additional output description"
+      }
+    ],
+    "process": [
+      {
+        "rule": "can_have_text2",
+        "severity": "INFO",
+        "description": "Process icon can have optional secondary text",
+        "fix": "Use text2 for process details"
+      }
+    ],
+    "end": [
+      {
+        "rule": "no_outgoing_connections",
+        "severity": "ERROR",
+        "description": "End icons must not have 'one' or 'two' fields",
+        "fix": "Remove outgoing connections from end icon"
+      }
+    ],
+    "select": [
+      {
+        "rule": "must_have_cases",
+        "severity": "ERROR",
+        "description": "Select must be followed by 2+ case icons",
+        "fix": "Add case icons after select icon"
+      }
+    ]
+  },
+  "json_specific_rules": [
+    {
+      "rule": "items_is_dictionary",
+      "severity": "CRITICAL",
+      "description": "items field must be object/dictionary, not array",
+      "check": "typeof items === 'object' && !Array.isArray(items)",
+      "error_message": "items is an array, should be dictionary",
+      "fix": "Convert items array to dictionary with string keys"
+    },
+    {
+      "rule": "no_diagram_wrapper",
+      "severity": "ERROR",
+      "description": "No 'diagram' wrapper in root",
+      "check": "Root should have name, access, items directly",
+      "error_message": "Unnecessary 'diagram' wrapper detected",
+      "fix": "Remove 'diagram' wrapper, move fields to root level"
+    },
+    {
+      "rule": "no_separate_links",
+      "severity": "ERROR",
+      "description": "No separate 'links' array",
+      "check": "Links should be part of item properties (one, two)",
+      "error_message": "Separate 'links' array found",
+      "fix": "Move links into item properties as 'one' and 'two' fields"
+    },
+    {
+      "rule": "style_is_json_string",
+      "severity": "ERROR",
+      "description": "style field must be JSON string, not object",
+      "check": "typeof style === 'string'",
+      "error_message": "style is object, should be JSON string",
+      "fix": "Convert style object to JSON string: JSON.stringify(style)"
+    },
+    {
+      "rule": "access_required",
+      "severity": "CRITICAL",
+      "description": "access field is required at diagram level",
+      "check": "access field exists and is 'read' or 'write'",
+      "error_message": "Missing required field 'access'",
+      "fix": "Add access: 'write' to diagram root"
+    },
+    {
+      "rule": "content_not_text",
+      "severity": "WARNING",
+      "description": "Use 'content' field, not 'text' in JSON format",
+      "check": "Items should use 'content' for text",
+      "error_message": "Item {id} uses 'text' instead of 'content'",
+      "fix": "Rename 'text' field to 'content'"
+    }
+  ],
+  "drn_specific_rules": [
+    {
+      "rule": "origin_tcl_format",
+      "severity": "ERROR",
+      "description": "origin field must be TCL list format",
+      "check": "origin is space-separated string like '0 0'",
+      "error_message": "origin is not in TCL list format",
+      "fix": "Convert to TCL format: '100 200' instead of '[100, 200]'"
+    },
+    {
+      "rule": "color_format",
+      "severity": "WARNING",
+      "description": "color field format: 'fg #rrggbb bg #rrggbb'",
+      "check": "color matches pattern 'fg #[0-9a-f]{6} bg #[0-9a-f]{6}'",
+      "error_message": "Invalid color format",
+      "fix": "Use format: 'fg #000000 bg #ffffff'"
+    },
+    {
+      "rule": "no_links_table",
+      "severity": "ERROR",
+      "description": "Do not use separate links table in .drn",
+      "check": "Links are derived from geometric positions, not stored separately",
+      "error_message": "Deprecated 'links' table found",
+      "fix": "Remove links table, derive connections from item positions"
+    }
+  ]
+}

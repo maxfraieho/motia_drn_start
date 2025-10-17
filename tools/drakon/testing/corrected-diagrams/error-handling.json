@@ -1,0 +1,74 @@
+{
+  "name": "corrected-test - Error Handling",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Error detected",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Extract error details",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "Log error with stack trace",
+      "one": "5"
+    },
+    "5": {
+      "type": "question",
+      "content": "Recoverable error?",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Attempt graceful recovery",
+      "one": "7"
+    },
+    "7": {
+      "type": "question",
+      "content": "Recovery successful?",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Resume normal operation",
+      "one": "9"
+    },
+    "9": {
+      "type": "action",
+      "content": "Emit error event",
+      "one": "10"
+    },
+    "10": {
+      "type": "select",
+      "content": "Error severity",
+      "one": "11"
+    },
+    "11": {
+      "type": "action",
+      "content": "Log warning (case: warning)",
+      "one": "12"
+    },
+    "12": {
+      "type": "action",
+      "content": "Alert operator (case: critical)",
+      "one": "13"
+    },
+    "13": {
+      "type": "action",
+      "content": "Initiate shutdown (case: fatal)",
+      "one": "14"
+    },
+    "14": {
+      "type": "end",
+      "content": "End"
+    }
+  }
+}

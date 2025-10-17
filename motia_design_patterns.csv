@@ -1,0 +1,9 @@
+pattern,motia_use_case,drakon_elements,folder_structure,claude_cli_benefit
+Observer Pattern,Event Steps - підписка та сповіщення про події,"Умови, розгалуження для обробки подій",events/{event-name}/diagrams/observer-flow.drakon,Автогенерація кода підписників та публікаторів
+Command Pattern,API Steps - інкапсуляція HTTP запитів як об'єктів,"Послідовні дії, валідація, обробка команд",api/{api-name}/diagrams/command-flow.drakon,Генерація API handlers з валідацією
+Strategy Pattern,Event Steps - різні алгоритми обробки подій,"Вибір стратегії, умовні переходи",events/{event-name}/diagrams/strategy-selection.drakon,Автоматичне створення стратегій обробки
+Chain of Responsibility,Stream Steps - послідовна обробка даних в потоці,"Ланцюг обробників, передача управління",streams/{stream-name}/diagrams/processing-chain.drakon,Генерація pipeline обробки даних
+State Pattern,Cron Steps - управління станами завдань,"Стани, переходи між станами, дії в станах",cron/{job-name}/diagrams/state-machine.drakon,Автогенерація state machine логіки
+Template Method,Всі типи кроків - базова структура з кастомізацією,Базовий алгоритм з варіативними кроками,templates/step-template.drakon,Створення кастомізованих кроків з шаблону
+Mediator Pattern,Project-level - координація взаємодії між кроками,"Центральний медіатор, маршрутизація подій",diagrams/project-overview/mediator-pattern.drakon,Генерація конфігурації взаємодії кроків
+Factory Pattern,Step creation - створення різних типів кроків,"Умови створення, типи об'єктів",templates/factory-pattern.drakon,Автоматичне створення кроків за типом

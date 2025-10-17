@@ -1,0 +1,143 @@
+{
+  "job_metadata": {
+    "name": "DRAKON Deep Research",
+    "description": "Comprehensive research on DRAKON visual programming language formats, tools, and ecosystem",
+    "version": "1.0",
+    "created": "2025-10-10",
+    "research_area": "DRAKON file formats, Stepan Mitkin ecosystem, converter specifications"
+  },
+
+  "perplexity_api": {
+    "endpoint": "https://api.perplexity.ai/chat/completions",
+    "model": "sonar-research",
+    "api_key_env": "PERPLEXITY_API_KEY",
+    "timeout": 600,
+    "retry_attempts": 3,
+    "retry_delay": 5
+  },
+
+  "request_parameters": {
+    "temperature": 0.1,
+    "max_tokens": 16000,
+    "top_p": 0.95,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "search_recency_filter": "month",
+    "return_citations": true,
+    "return_related_questions": true,
+    "search_domain_filter": [
+      "github.com",
+      "stepan-mitkin.github.io",
+      "drakonhub.com"
+    ]
+  },
+
+  "input_files": {
+    "prompt": "./perplexity_prompt.txt",
+    "known_context": "../converter/README.md",
+    "reference_formats": [
+      "../converter/drakon_to_drn.py",
+      "../converter/drakon_to_json.py"
+    ]
+  },
+
+  "output_structure": {
+    "raw_response": "./research_output/raw/perplexity_response_{timestamp}.json",
+    "processed_markdown": "./research_output/processed/DRAKON_RESEARCH_{timestamp}.md",
+    "knowledge_base": "./knowledge_base/drakon_formats.json",
+    "citation_index": "./research_output/citations.json",
+    "code_samples": "./research_output/code_samples/",
+    "schemas": "./research_output/schemas/"
+  },
+
+  "processing_pipeline": {
+    "steps": [
+      {
+        "name": "extract_schemas",
+        "enabled": true,
+        "description": "Extract SQL and JSON schemas from research results"
+      },
+      {
+        "name": "collect_code_samples",
+        "enabled": true,
+        "description": "Collect Python/JavaScript code snippets from official repos"
+      },
+      {
+        "name": "build_icon_reference",
+        "enabled": true,
+        "description": "Build comprehensive DRAKON icon type reference table"
+      },
+      {
+        "name": "generate_conversion_cookbook",
+        "enabled": true,
+        "description": "Create step-by-step .drn ↔ .json conversion guide"
+      },
+      {
+        "name": "validate_compatibility",
+        "enabled": true,
+        "description": "Validate our converters against discovered specifications"
+      },
+      {
+        "name": "update_converters",
+        "enabled": false,
+        "description": "Optionally auto-update converter code based on findings"
+      }
+    ]
+  },
+
+  "success_criteria": {
+    "min_citations": 10,
+    "required_sections": [
+      "File Format Specifications",
+      "Icon Types and Structures",
+      "Conversion Guide",
+      "Code Examples",
+      "Sample Files"
+    ],
+    "required_findings": [
+      "Complete .drn SQL schema",
+      "Complete JSON structure",
+      "All icon types cataloged",
+      "At least 3 sample files analyzed",
+      "Conversion process documented",
+      "Validation rules documented"
+    ]
+  },
+
+  "quality_checks": {
+    "validate_json": true,
+    "check_code_syntax": true,
+    "verify_external_links": true,
+    "cross_reference_sources": true,
+    "flag_contradictions": true
+  },
+
+  "integration": {
+    "update_session_context": true,
+    "notify_on_completion": true,
+    "auto_commit_to_git": false,
+    "generate_summary_report": true
+  },
+
+  "fallback_sources": {
+    "github_repos": [
+      "https://github.com/stepan-mitkin/drakon_editor",
+      "https://github.com/stepan-mitkin/drakonwidget",
+      "https://github.com/stepan-mitkin/drakonhub"
+    ],
+    "documentation_urls": [
+      "https://drakonhub.com/docs",
+      "https://drakon.su"
+    ],
+    "academic_papers": [
+      "DRAKON: An Algorithmic Visual Programming Language"
+    ]
+  },
+
+  "monitoring": {
+    "log_level": "INFO",
+    "log_file": "./logs/perplexity_research_{timestamp}.log",
+    "progress_updates": true,
+    "estimated_duration_minutes": 30
+  }
+}

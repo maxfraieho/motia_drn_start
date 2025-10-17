@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DRAKON Test: test-step - Initialization</title>
+    <script src="drakonwidget.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        #test-info {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #editor-area {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #test-results {
+            background: white;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-pass { color: green; }
+        .test-fail { color: red; }
+        .test-pending { color: orange; }
+    </style>
+</head>
+<body>
+    <div id="test-info">
+        <h1>DRAKON Diagram Test</h1>
+        <p><strong>Diagram:</strong> <span id="diagram-name"></span></p>
+        <p><strong>Status:</strong> <span id="test-status" class="test-pending">Testing...</span></p>
+    </div>
+    
+    <div id="editor-area"></div>
+    
+    <div id="test-results">
+        <h2>Test Results</h2>
+        <ul id="results-list"></ul>
+    </div>
+    
+    <script>
+        // Diagram data embedded
+        var diagramData = {
+  "name": "test-step - Initialization",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Initialize test-step",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Load configuration from config.json",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "Validate schema against schema.json",
+      "one": "5"
+    },
+    "5": {
+      "type": "question",
+      "content": "Configuration valid?",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Log configuration error",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "Throw ConfigurationError",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Initialize dependencies",
+      "one": "9"
+    },
+    "9": {
+      "type": "action",
+      "content": "Setup HTTP routes",
+      "one": "10"
+    },
+    "10": {
+      "type": "action",
+      "content": "Configure middleware",
+      "one": "11"
+    },
+    "11": {
+      "type": "action",
+      "content": "Emit \"initialized\" event",
+      "one": "12"
+    },
+    "12": {
+      "type": "end",
+      "content": "Ready"
+    }
+  }
+};
+        
+        // Test results
+        var testResults = [];
+        
+        function addResult(name, passed, message) {
+            testResults.push({ name: name, passed: passed, message: message });
+            updateResultsDisplay();
+        }
+        
+        function updateResultsDisplay() {
+            var list = document.getElementById('results-list');
+            list.innerHTML = '';
+            
+            var allPassed = true;
+            testResults.forEach(function(result) {
+                var li = document.createElement('li');
+                li.className = result.passed ? 'test-pass' : 'test-fail';
+                li.textContent = (result.passed ? '✓ ' : '✗ ') + result.name + ': ' + result.message;
+                list.appendChild(li);
+                if (!result.passed) allPassed = false;
+            });
+            
+            var status = document.getElementById('test-status');
+            if (testResults.length > 0) {
+                status.textContent = allPassed ? 'PASSED' : 'FAILED';
+                status.className = allPassed ? 'test-pass' : 'test-fail';
+            }
+            
+            // Expose results globally for automated testing
+            window.DRAKON_TEST_RESULTS = {
+                passed: allPassed,
+                results: testResults
+            };
+        }
+        
+        // Run tests
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('diagram-name').textContent = diagramData.name || 'Unnamed';
+            
+            try {
+                // Test 1: DrakonWidget loads
+                var drakon = createDrakonWidget();
+                addResult('DrakonWidget Load', true, 'Widget created successfully');
+                
+                // Test 2: Configuration
+                var config = {
+                    startEditContent: function(item, isReadonly) {
+                        console.log('Edit:', item.id);
+                    },
+                    showContextMenu: function(left, top, items) {
+                        console.log('Context menu:', items);
+                    },
+                    canSelect: true,
+                    theme: {
+                        background: '#f5f5f5',
+                        iconBack: 'white',
+                        iconBorder: '#333'
+                    }
+                };
+                
+                addResult('Configuration', true, 'Config object created');
+                
+                // Test 3: Render widget
+                var editorArea = document.getElementById('editor-area');
+                var rect = editorArea.getBoundingClientRect();
+                var widgetElement = drakon.render(rect.width, rect.height, config);
+                editorArea.appendChild(widgetElement);
+                
+                addResult('Widget Render', true, 'Widget rendered to DOM');
+                
+                // Test 4: Load diagram
+                var sender = {
+                    stop: function() {},
+                    pushEdit: function(edit) {
+                        console.log('Edit:', edit);
+                    }
+                };
+                
+                drakon.setDiagram('test-diagram', diagramData, sender).then(function(fonts) {
+                    addResult('Diagram Load', true, 'Diagram loaded successfully');
+                    addResult('Fonts', true, 'Fonts: ' + fonts.join(', '));
+                    
+                    // Test 5: Redraw
+                    drakon.redraw();
+                    addResult('Redraw', true, 'Diagram redrawn');
+                    
+                    // Test 6: Validate structure
+                    var items = diagramData.items || {};
+                    var itemCount = Object.keys(items).length;
+                    addResult('Structure', itemCount > 0, itemCount + ' items found');
+                    
+                    // Test 7: Check for required icons
+                    var hasStart = false;
+                    var hasEnd = false;
+                    
+                    for (var id in items) {
+                        if (items[id].type === 'branch') hasStart = true;
+                        if (items[id].type === 'end') hasEnd = true;
+                    }
+                    
+                    addResult('Start Icon', hasStart, hasStart ? 'Found' : 'Missing');
+                    addResult('End Icon', hasEnd, hasEnd ? 'Found' : 'Missing');
+                    
+                    // Test 8: Validate links
+                    var brokenLinks = 0;
+                    for (var id in items) {
+                        var item = items[id];
+                        if (item.one && !items[item.one]) brokenLinks++;
+                        if (item.two && !items[item.two]) brokenLinks++;
+                    }
+                    
+                    addResult('Link Integrity', brokenLinks === 0, 
+                             brokenLinks === 0 ? 'All links valid' : brokenLinks + ' broken links');
+                    
+                    console.log('✓ All tests complete');
+                    
+                }).catch(function(error) {
+                    addResult('Diagram Load', false, 'Error: ' + error.message);
+                });
+                
+            } catch(error) {
+                addResult('Critical Error', false, error.message);
+                console.error('Test error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

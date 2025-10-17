@@ -1,0 +1,464 @@
+{
+  "version": "5.0",
+  "source": "DRAKON Editor Official Specification + Perplexity/Claude Research 2025-10-10",
+  "icon_types": {
+    "action": {
+      "name": "Action",
+      "description": "Action/operation block",
+      "shape": "rectangle",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Primary text content",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Execute code, perform operation, single statement"
+    },
+    "question": {
+      "name": "Question (Decision)",
+      "description": "If/else decision point",
+      "shape": "diamond_rounded",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 1},
+      "fields": {
+        "text": "Condition to evaluate",
+        "text2": null
+      },
+      "special_params": {
+        "a": "Length of horizontal line to the right",
+        "b": "YES/NO orientation: 0=YES down/NO right, 1=NO down/YES right"
+      },
+      "usage": "Branching logic, boolean conditions"
+    },
+    "select": {
+      "name": "Select (Switch)",
+      "description": "Switch/case statement",
+      "shape": "hexagon",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 0, "right": "multiple"},
+      "fields": {
+        "text": "Expression to evaluate",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Multiple choice branching, followed by case icons"
+    },
+    "case": {
+      "name": "Case",
+      "description": "Case branch of select",
+      "shape": "small_rectangle",
+      "default_size": {"width": 60, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Case value",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Part of select statement, each case branch"
+    },
+    "beginend": {
+      "name": "Begin/End",
+      "description": "Start or end marker",
+      "shape": "rounded_rectangle",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Label (Start/End)",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Mark beginning or end of algorithm"
+    },
+    "end": {
+      "name": "End",
+      "description": "Terminal point",
+      "shape": "rounded_rectangle",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 0, "right": 0},
+      "fields": {
+        "text": "Label (typically empty)",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Final termination point, no outgoing links"
+    },
+    "loopbegin": {
+      "name": "Loop Begin",
+      "description": "Loop initialization",
+      "shape": "loop_start",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Loop initialization",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "For loop initialization, must pair with loopend"
+    },
+    "loopend": {
+      "name": "Loop End",
+      "description": "Loop termination",
+      "shape": "loop_end",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Loop continuation condition",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Loop termination check, must pair with loopbegin"
+    },
+    "foreach": {
+      "name": "For Each",
+      "description": "For-each iteration",
+      "shape": "foreach_rectangle",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Collection to iterate",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Iterate over collection/array"
+    },
+    "branch": {
+      "name": "Branch",
+      "description": "Branch header (silhouette)",
+      "shape": "branch_header",
+      "default_size": {"width": 180, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Branch name/label",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "1 if has cycle mark, 0 otherwise"
+      },
+      "usage": "Required: every diagram must have at least one branch header",
+      "critical": true
+    },
+    "address": {
+      "name": "Address",
+      "description": "Branch footer/jump target",
+      "shape": "address_footer",
+      "default_size": {"width": 180, "height": 40},
+      "connections": {"down": 0, "right": 0},
+      "fields": {
+        "text": "Target branch name",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "1 if has cycle mark, 0 otherwise"
+      },
+      "usage": "Jump to another branch, terminate current branch"
+    },
+    "comment": {
+      "name": "Comment",
+      "description": "Documentation comment",
+      "shape": "cloud",
+      "default_size": {"width": 120, "height": 60},
+      "connections": {"down": 0, "right": 0, "left": "optional"},
+      "fields": {
+        "text": "Comment text",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Add documentation, no flow control"
+    },
+    "insertion": {
+      "name": "Insertion",
+      "description": "Sub-routine call",
+      "shape": "double_rectangle",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Sub-routine name",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Call another diagram/function"
+    },
+    "shelf": {
+      "name": "Shelf",
+      "description": "Double-text container",
+      "shape": "shelf_box",
+      "default_size": {"width": 120, "height": 60},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Primary text (lower field)",
+        "text2": "Secondary text (upper field)"
+      },
+      "special_params": {
+        "a": "Distance from top edge to horizontal dividing line",
+        "b": "unused"
+      },
+      "usage": "Two-part text display, variable declarations"
+    },
+    "input": {
+      "name": "Input",
+      "description": "Input operation",
+      "shape": "input_parallelogram",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Primary text",
+        "text2": "Secondary text (optional)"
+      },
+      "special_params": {
+        "a": "Distance parameter",
+        "b": "unused"
+      },
+      "usage": "Read input, get data"
+    },
+    "output": {
+      "name": "Output",
+      "description": "Output operation",
+      "shape": "output_parallelogram",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Primary text",
+        "text2": "Secondary text (optional)"
+      },
+      "special_params": {
+        "a": "Distance parameter",
+        "b": "unused"
+      },
+      "usage": "Write output, display data"
+    },
+    "process": {
+      "name": "Process",
+      "description": "Process box",
+      "shape": "process_rectangle",
+      "default_size": {"width": 120, "height": 60},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Primary text",
+        "text2": "Secondary text (optional)"
+      },
+      "special_params": {
+        "a": "Distance parameter",
+        "b": "unused"
+      },
+      "usage": "Complex process, sub-process"
+    },
+    "timer": {
+      "name": "Timer",
+      "description": "Timer operation",
+      "shape": "timer_box",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Timer specification",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Real-time timing operations"
+    },
+    "pause": {
+      "name": "Pause",
+      "description": "Pause/delay",
+      "shape": "pause_box",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Pause duration",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Delay execution, wait"
+    },
+    "duration": {
+      "name": "Duration",
+      "description": "Duration marker",
+      "shape": "duration_mark",
+      "default_size": {"width": 60, "height": 40},
+      "connections": {"down": 0, "right": 0, "left": 1},
+      "fields": {
+        "text": "Duration label",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Mark time measurement points"
+    },
+    "parblock": {
+      "name": "Parallel Block",
+      "description": "Parallel block start",
+      "shape": "parallel_start",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": "multiple", "right": 0},
+      "fields": {
+        "text": "Parallel block label",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Start concurrent execution paths"
+    },
+    "par": {
+      "name": "Parallel End",
+      "description": "Parallel end/join",
+      "shape": "parallel_end",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Join label",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Join concurrent paths back to single flow"
+    },
+    "ctrlstart": {
+      "name": "Control Start",
+      "description": "Control/state machine start",
+      "shape": "control_start",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "State machine label",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "State machine entry point"
+    },
+    "ctrlend": {
+      "name": "Control End",
+      "description": "Control/state machine end",
+      "shape": "control_end",
+      "default_size": {"width": 120, "height": 40},
+      "connections": {"down": 0, "right": 0},
+      "fields": {
+        "text": "End label",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "State machine exit point"
+    },
+    "drakon-image": {
+      "name": "Image",
+      "description": "Image placeholder",
+      "shape": "image_box",
+      "default_size": {"width": 120, "height": 80},
+      "connections": {"down": 1, "right": 0},
+      "fields": {
+        "text": "Image path or description",
+        "text2": null
+      },
+      "special_params": {
+        "a": "unused",
+        "b": "unused"
+      },
+      "usage": "Embed images in diagram"
+    }
+  },
+  "line_types": {
+    "horizontal": {
+      "description": "Horizontal connector line",
+      "coordinates": {
+        "x": "Left end X coordinate",
+        "y": "Left end Y coordinate",
+        "w": "Distance between left and right ends",
+        "h": "ignored"
+      },
+      "a_encoding": {
+        "0": "Plain line (no arrows)",
+        "40100": "Left arrow",
+        "20100": "Right arrow",
+        "60100": "Both arrows"
+      },
+      "usage": "Connect icons horizontally"
+    },
+    "vertical": {
+      "description": "Vertical connector line",
+      "coordinates": {
+        "x": "Top end X coordinate",
+        "y": "Top end Y coordinate",
+        "w": "ignored",
+        "h": "Distance between top and bottom ends"
+      },
+      "a_encoding": {
+        "0": "Plain line (no arrows)",
+        "10100": "Up arrow",
+        "30100": "Down arrow",
+        "50100": "Both arrows"
+      },
+      "usage": "Connect icons vertically, upward arrows indicate loops"
+    }
+  },
+  "validation_rules": {
+    "structural": [
+      "Every diagram MUST have at least one branch icon",
+      "Branch with lowest branchId is execution start point",
+      "Question icons MUST have exactly 2 outgoing connections (one, two)",
+      "End icons MUST NOT have outgoing connections",
+      "Select icons MUST be followed by case icons"
+    ],
+    "topological": [
+      "Main path (Royal Road) should be vertical using 'one' links",
+      "Branches should extend to the right using 'two' links",
+      "Line intersections should be avoided",
+      "Upward arrows represent loops only",
+      "After horizontal join, flow continues left",
+      "After vertical join, flow continues down"
+    ],
+    "references": [
+      "All 'one' references must point to existing item IDs",
+      "All 'two' references must point to existing item IDs",
+      "No circular references except in loop constructs",
+      "Branch pairs must match (loopbegin with loopend)"
+    ]
+  }
+}

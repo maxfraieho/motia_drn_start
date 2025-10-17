@@ -1,0 +1,279 @@
+# Deep Research Request: DRAKON Visual Programming Language - Formats, Tools, and Ecosystem
+
+## Research Objective
+Conduct comprehensive research on the DRAKON visual programming language ecosystem, focusing on file formats, tooling, and practical implementation details for building a production-grade DRAKON converter compatible with Stepan Mitkin's official tools.
+
+## Known Context (Starting Point)
+
+### Creator & Background
+- **DRAKON** is a visual programming language and diagram notation originally developed for the **Buran space program**
+- Created and maintained by Russian engineer **Stepan Mitkin**
+- Active open-source ecosystem with multiple tools and platforms
+- GitHub presence: https://github.com/stepan-mitkin
+
+### Core Tools Ecosystem
+1. **DRAKON Editor** (Desktop Application)
+   - Technology: C#/Qt
+   - Platform: Windows, Linux, macOS
+   - Repository: `github.com/stepan-mitkin/drakon_editor`
+
+2. **DrakonWidget** (JavaScript Viewer/Editor)
+   - Technology: JavaScript/Canvas
+   - Use case: Browser-based embedding
+   - Repository: `github.com/stepan-mitkin/drakonwidget`
+
+3. **DrakonHub** (Web Platform)
+   - Technology: Web-based collaboration platform
+   - Features: Diagram storage, sharing, API access
+   - Repository: `github.com/stepan-mitkin/drakonhub`
+
+### File Formats
+1. **.drn** (Native DRAKON Editor Format)
+   - Type: SQLite database
+   - Tables: `diagrams`, `icons` (nodes), `links` (connections), `texts`, `meta`, `settings`
+   - Schema inspectable via SQLite viewer
+
+2. **.json** (DrakonWidget/DrakonHub Format)
+   - Type: JSON object
+   - Structure: `{diagram: {name, nodes[], links[], settings}}`
+   - Nodes: `{id, type, text, x, y, width, height}`
+   - Links: `{id, from, to, points[]}`
+
+3. **.drskon** (Non-standard)
+   - Current prototype format
+   - Not compatible with any official editor
+   - Needs replacement
+
+### Typical JSON Structure (from drakonwidget)
+```json
+{
+  "diagram": {
+    "name": "Example",
+    "type": "drakon",
+    "nodes": [
+      {"id": 1, "type": "action", "text": "doSomething", "x": 100, "y": 100}
+    ],
+    "links": [
+      {"id": 1, "from": 1, "to": 2, "points": []}
+    ],
+    "settings": {
+      "gridSize": 20,
+      "zoom": 1.0
+    }
+  }
+}
+```
+
+## Research Questions
+
+### 1. File Format Specifications
+**Priority: Critical**
+
+- What is the complete SQLite schema for `.drn` files? (tables, columns, data types, constraints)
+- What are ALL fields in the `icons` table? (beyond id, type, x, y, w, h, text)
+- What are the exact format and metadata fields used for styling, colors, fonts?
+- How does `.drn` handle multi-diagram files?
+- What is the exact structure of the `vertices` field in the `links` table? (JSON array format)
+- Are there version differences in `.drn` format across DRAKON Editor releases?
+
+### 2. JSON Format Details
+**Priority: Critical**
+
+- What is the complete JSON schema for DrakonWidget/DrakonHub?
+- What are ALL supported node types and their exact string identifiers?
+  - Known: action, question, select, loopbegin, loopend, foreach, branch, address, start, end, parameters, comment
+  - Any others?
+- What optional fields exist for nodes? (styling, colors, formatting, metadata)
+- How are branching structures (if-then-else, switch-case) represented in JSON?
+- How are nested silhouettes (sub-diagrams) structured?
+- What are the coordinate systems and units? (pixels? grid units?)
+
+### 3. Icon/Node Types
+**Priority: High**
+
+- Complete list of ALL DRAKON icon types with descriptions
+- Which icon types are required in a valid diagram? (e.g., must have start/end?)
+- What are the size constraints for each icon type?
+- How do special icons work: silhouettes, branches, addresses (jumps)?
+- What is the "царська дорога" (royal road) principle in practice?
+- How is the "чем правее, тем хуже" (the further right, the worse) principle enforced?
+
+### 4. Conversion Between Formats
+**Priority: High**
+
+- Is there official tooling for `.drn` ↔ `.json` conversion?
+- What is the exact process for DRAKON Editor's "Import JSON Diagram" feature?
+- Are there any lossy conversions? (features supported in one format but not the other)
+- Can DrakonHub API be used programmatically for format conversion?
+
+### 5. Layout and Rendering
+**Priority: Medium**
+
+- What are the auto-layout algorithms used by DRAKON Editor?
+- How are coordinates calculated? (absolute pixels? relative grid?)
+- What are the spacing rules between icons?
+- How are polyline link routes calculated? (straight, orthogonal, curved?)
+- How do branch splits work visually? (YES down, NO right)
+
+### 6. Validation Rules
+**Priority: Medium**
+
+- What makes a DRAKON diagram valid?
+- Are there structural constraints? (e.g., every question must have 2 outgoing links)
+- How are loops validated? (loopbegin must match with loopend?)
+- Can diagrams have multiple start/end points?
+- What validation does DRAKON Editor perform on import?
+
+### 7. API and Programmatic Access
+**Priority: Medium**
+
+- Does DrakonHub have a REST API? If so, what are the endpoints?
+- Can diagrams be uploaded/downloaded programmatically?
+- Are there any Python/JavaScript libraries for DRAKON manipulation?
+- Is there documentation for embedding DrakonWidget in custom applications?
+
+### 8. Advanced Features
+**Priority: Low**
+
+- How do silhouettes (sub-diagrams) work? Can they be nested?
+- What is the address icon used for? (goto/jump statements?)
+- Are there comment annotations or metadata fields?
+- Can DRAKON diagrams generate code? (to what languages?)
+- What export formats does DRAKON Editor support? (PNG, SVG, PDF, code?)
+
+### 9. Real-World Examples
+**Priority: High**
+
+- Are there public repositories with sample `.drn` and `.json` files?
+- What are canonical "hello world" DRAKON diagrams?
+- Are there complex production diagrams available for study?
+- What patterns are commonly used in DRAKON community?
+
+### 10. Integration and Tooling
+**Priority: Medium**
+
+- How can DRAKON be integrated into CI/CD pipelines?
+- Are there linters or validators for DRAKON diagrams?
+- Can DRAKON diagrams be version-controlled effectively? (diff, merge)
+- What are best practices for team collaboration on DRAKON diagrams?
+
+## Deliverables Requested
+
+Please provide:
+
+1. **Complete .drn Schema Specification**
+   - SQL CREATE TABLE statements for all tables
+   - Sample data for each table
+   - Field descriptions and constraints
+
+2. **Complete JSON Format Specification**
+   - JSON schema (JSON Schema or TypeScript types)
+   - All possible field values and enums
+   - Examples for each icon type
+
+3. **Icon Type Reference**
+   - Table of all icon types with:
+     - Type identifier (string)
+     - Visual description
+     - Usage rules
+     - Required/optional links
+     - Default dimensions
+
+4. **Conversion Cookbook**
+   - Step-by-step guide for `.drn` → `.json`
+   - Step-by-step guide for `.json` → `.drn`
+   - Python/JavaScript code snippets if available
+
+5. **Sample Files**
+   - Links to or content of sample `.drn` files
+   - Links to or content of sample `.json` files
+   - At least 3-5 examples of varying complexity
+
+6. **Validation Rules**
+   - List of structural constraints
+   - Validation algorithm pseudocode
+   - Common errors and how to fix them
+
+7. **API Documentation**
+   - DrakonHub API endpoints (if available)
+   - Authentication methods
+   - Rate limits and usage policies
+
+8. **Layout Algorithm**
+   - Description of auto-layout logic
+   - Coordinate calculation formulas
+   - Spacing and alignment rules
+
+## Research Priorities
+
+1. **CRITICAL** - File format specifications (must-have for converter)
+2. **HIGH** - Icon types, conversion cookbook, sample files
+3. **MEDIUM** - Validation, API access, layout algorithms
+4. **LOW** - Advanced features, integration patterns
+
+## Sources to Prioritize
+
+1. Official Stepan Mitkin GitHub repositories
+2. DRAKON Editor source code documentation
+3. DrakonHub platform documentation
+4. Academic papers on DRAKON (if any)
+5. Community forums, wikis, tutorials
+6. Russian-language sources (DRAKON originated in Russia)
+
+## Output Format
+
+Please structure your findings as:
+
+### Section 1: File Format Specifications
+[Detailed technical specifications]
+
+### Section 2: Icon Types and Structures
+[Complete reference table]
+
+### Section 3: Conversion Guide
+[Step-by-step instructions]
+
+### Section 4: Code Examples
+[Actual code snippets from official repos]
+
+### Section 5: Sample Files
+[Links or inline content]
+
+### Section 6: Best Practices
+[Implementation recommendations]
+
+### Section 7: Gotchas and Common Pitfalls
+[Known issues and workarounds]
+
+## Success Criteria
+
+Research is complete when:
+- [ ] Full `.drn` SQL schema is documented
+- [ ] Full `.json` structure is documented with all optional fields
+- [ ] All icon types are cataloged with usage rules
+- [ ] At least 3 sample files are analyzed
+- [ ] Conversion process is fully specified
+- [ ] Validation rules are documented
+
+## Additional Context
+
+This research supports building a production-grade DRAKON converter for the **Motia framework** - a code-first event-driven backend framework. The converter will:
+
+1. Parse pseudocode algorithm descriptions
+2. Generate syntactically correct `.drn` and `.json` files
+3. Be compatible with DRAKON Editor (desktop) and DrakonHub (web)
+4. Support auto-layout and validation
+5. Integrate into AI-assisted development workflows (Claude CLI)
+
+Target users: Software architects using Motia to build event-driven Step architectures who want visual algorithm documentation alongside code.
+
+## Timeline
+**Urgency:** High
+**Expected research time:** 2-4 hours
+**Follow-up iterations:** Possible if initial research uncovers gaps
+
+---
+
+**Generated by:** Claude Sonnet 4.5 (Motia DRAKON Pipeline Module)
+**Date:** 2025-10-10 03:00 UTC
+**For:** Perplexity Labs Deep Research Engine

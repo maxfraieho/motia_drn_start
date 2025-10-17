@@ -1,0 +1,60 @@
+{
+  "name": "test-step - Main Flow",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "HTTP request received",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Parse request body",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "Validate input schema",
+      "one": "5"
+    },
+    "5": {
+      "type": "question",
+      "content": "Input valid?",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Authenticate request",
+      "one": "7"
+    },
+    "7": {
+      "type": "question",
+      "content": "Authorized?",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Process request",
+      "one": "9"
+    },
+    "9": {
+      "type": "action",
+      "content": "Format response",
+      "one": "10"
+    },
+    "10": {
+      "type": "action",
+      "content": "Return HTTP 200 OK",
+      "one": "11"
+    },
+    "11": {
+      "type": "end",
+      "content": "Complete"
+    }
+  }
+}

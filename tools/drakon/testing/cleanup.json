@@ -1,0 +1,55 @@
+{
+  "name": "test-step - Cleanup",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Shutdown signal received",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Stop accepting new requests",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "Wait for pending operations",
+      "one": "5"
+    },
+    "5": {
+      "type": "action",
+      "content": "Close HTTP server",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Terminate connections",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "Release allocated resources",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Close database connections",
+      "one": "9"
+    },
+    "9": {
+      "type": "action",
+      "content": "Emit \"terminated\" event",
+      "one": "10"
+    },
+    "10": {
+      "type": "end",
+      "content": "Shutdown complete"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "name": "Sample Step - Initialization",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Initialize service",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Load configuration from config.json",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "Validate schema against schema.json",
+      "one": "5"
+    },
+    "5": {
+      "type": "question",
+      "content": "Configuration valid?",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Log configuration error",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "Throw ConfigurationError",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Initialize dependencies",
+      "one": "9"
+    },
+    "9": {
+      "type": "action",
+      "content": "Setup HTTP routes",
+      "one": "10"
+    },
+    "10": {
+      "type": "action",
+      "content": "Configure middleware",
+      "one": "11"
+    },
+    "11": {
+      "type": "action",
+      "content": "Emit 'initialized' event",
+      "one": "12"
+    },
+    "12": {
+      "type": "end",
+      "content": "Ready"
+    }
+  }
+}

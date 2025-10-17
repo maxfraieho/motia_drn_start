@@ -1,0 +1,15 @@
+# Generated output
+motia-output/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local settings
+.claude/
+
+# OS-specific
+.DS_Store
+Thumbs.db

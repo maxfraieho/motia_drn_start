@@ -1,0 +1,49 @@
+{
+  "name": "Example Workflow",
+  "access": "write",
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0
+    },
+    "2": {
+      "type": "action",
+      "content": "Load configuration",
+      "one": "3"
+    },
+    "3": {
+      "type": "question",
+      "content": "Configuration valid?",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "Initialize system",
+      "one": "5"
+    },
+    "5": {
+      "type": "action",
+      "content": "For each task",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "Process task",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "End loop",
+      "one": "8"
+    },
+    "8": {
+      "type": "action",
+      "content": "Save results",
+      "one": "9"
+    },
+    "9": {
+      "type": "end"
+    }
+  }
+}

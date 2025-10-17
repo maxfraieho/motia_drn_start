@@ -1,0 +1,36 @@
+{
+  "step_folder": {
+    "name": "{step-name}",
+    "files": {
+      "handler": "{step-name}.ts або .py",
+      "config": "config.json",
+      "schema": "schema.json",
+      "readme": "README.md"
+    },
+    "folders": {
+      "diagrams": {
+        "description": "ДРАКОН діаграми для цього кроку",
+        "files": [
+          "logic-flow.drakon",
+          "error-handling.drakon",
+          "data-processing.drakon",
+          "state-transitions.drakon"
+        ]
+      },
+      "tests": {
+        "description": "Тести для кроку",
+        "files": [
+          "unit-tests.ts",
+          "integration-tests.ts"
+        ]
+      },
+      "docs": {
+        "description": "Документація кроку",
+        "files": [
+          "api-docs.md",
+          "usage-examples.md"
+        ]
+      }
+    }
+  }
+}

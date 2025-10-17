@@ -1,0 +1,731 @@
+{
+  "project_summary": "Motia is a code-first event-driven framework for building modular backend systems with multiple subsystems: (1) Automation System for AI-assisted Motia Step generation, (2) Migration Project converting Claude Code Telegram Bot to 15 Motia Steps (8.9% complete), (3) Markdown Service for 3-level context aggregation and Claude CLI integration. Currently has significant duplication and organizational issues requiring refactoring.",
+
+  "analysis_metadata": {
+    "date": "2025-10-10 02:45 UTC",
+    "analyst": "Senior System Architect (Claude Sonnet 4.5)",
+    "project_root": "/home/vokov/motia",
+    "total_files_analyzed": 17,
+    "total_scripts": 12,
+    "total_lines_code": 2223
+  },
+
+  "issues": [
+    {
+      "path": "./md_to_embeddings_service_v4.py",
+      "type": "duplicate",
+      "severity": "medium",
+      "explanation": "Duplicated in gen-md-refactor/md_to_embeddings_service_v4.py. Root copy is 27KB and appears to be legacy version superseded by gen-md-refactor/motia-md-service.py (33KB).",
+      "recommendation": "Archive root copy, keep only gen-md-refactor version"
+    },
+    {
+      "path": "./run_md_service.sh",
+      "type": "duplicate",
+      "severity": "medium",
+      "explanation": "Duplicated in gen-md-refactor/run_md_service.sh. Both are simple launchers (3.4KB), superseded by gen-md-refactor/motia-md-service.sh (16KB).",
+      "recommendation": "Archive root copy, consolidate under gen-md-refactor/"
+    },
+    {
+      "path": "./motia.md",
+      "type": "bloat",
+      "severity": "high",
+      "explanation": "Extremely large file (2.7MB) containing comprehensive framework documentation. Should be split or moved to docs/.",
+      "recommendation": "Keep CLAUDE-CORE.md (10KB) for AI use, move motia.md to archive/docs/"
+    },
+    {
+      "path": "./src.md",
+      "type": "bloat",
+      "severity": "high",
+      "explanation": "Very large markdown file (1.3MB) likely containing source code dumps. Not clear purpose, not referenced in workflow.",
+      "recommendation": "Archive or delete if not needed"
+    },
+    {
+      "path": "./full-generate-motia-step.sh",
+      "type": "superseded",
+      "severity": "low",
+      "explanation": "Older automation script (3.7KB) superseded by unified-motia-workflow.sh (24KB) which integrates all 3 subsystems.",
+      "recommendation": "Archive as legacy, use unified-motia-workflow.sh"
+    },
+    {
+      "path": "./motia-claude-workflow.sh",
+      "type": "superseded",
+      "severity": "low",
+      "explanation": "Standalone workflow script (6KB) now superseded by unified-motia-workflow.sh which provides 10 integrated commands.",
+      "recommendation": "Keep for backward compatibility, document as legacy in v2.1"
+    },
+    {
+      "path": "./promt/",
+      "type": "unclear",
+      "severity": "low",
+      "explanation": "Directory purpose unclear, likely contains prompt templates but not documented in main workflow.",
+      "recommendation": "Review contents, rename to prompts/ or integrate into patterns/"
+    },
+    {
+      "path": "./motia-output/steps/",
+      "type": "incomplete",
+      "severity": "critical",
+      "explanation": "Migration project only 8.9% complete (2/15 steps). 13 steps need generation (104 files). Critical gap in project completion.",
+      "recommendation": "Priority: Complete remaining 13 steps using unified-motia-workflow.sh"
+    },
+    {
+      "path": "./patterns/",
+      "type": "structure",
+      "severity": "low",
+      "explanation": "Contains 8 design patterns but flat structure. Could benefit from categorization (behavioral/creational/structural).",
+      "recommendation": "Organize patterns by category, add index.json"
+    },
+    {
+      "path": "./Claude.md",
+      "type": "bloat",
+      "severity": "medium",
+      "explanation": "Very large documentation file (679KB). CLAUDE-CORE.md (10KB) exists as optimized version.",
+      "recommendation": "Move to docs/ or archive/, keep CLAUDE-CORE.md as primary reference"
+    },
+    {
+      "path": "step-descriptions/",
+      "type": "missing",
+      "severity": "low",
+      "explanation": "Directory referenced in workflow but not present in root. Created dynamically by scripts.",
+      "recommendation": "Create placeholder directory with README.md"
+    }
+  ],
+
+  "proposed_tree": [
+    {
+      "path": "/core",
+      "type": "foundation",
+      "files": [
+        "CLAUDE-CORE.md",
+        "README.md",
+        "SESSION-CONTEXT.md",
+        "WORKFLOW-IMPROVEMENTS.md",
+        "QUICK-START-TOMORROW.md"
+      ],
+      "rationale": "Essential documentation and workflow guides. CLAUDE-CORE.md is optimized 10KB reference for AI."
+    },
+    {
+      "path": "/scripts",
+      "type": "automation",
+      "files": [
+        "unified-motia-workflow.sh",
+        "create-step-description.sh",
+        "aggregate-step-to-md.sh"
+      ],
+      "rationale": "Active automation scripts. unified-motia-workflow.sh is v2.0 primary entry point."
+    },
+    {
+      "path": "/scripts/legacy",
+      "type": "archived",
+      "files": [
+        "motia-claude-workflow.sh",
+        "full-generate-motia-step.sh",
+        "run_md_service.sh",
+        "md_to_embeddings_service_v4.py"
+      ],
+      "rationale": "Superseded scripts kept for backward compatibility and reference."
+    },
+    {
+      "path": "/patterns",
+      "type": "library",
+      "structure": {
+        "behavioral": [
+          "observer-pattern.md",
+          "command-pattern.md",
+          "strategy-pattern.md",
+          "chain-of-responsibility-pattern.md",
+          "state-pattern.md",
+          "mediator-pattern.md",
+          "template-method-pattern.md"
+        ],
+        "creational": ["factory-pattern.md"],
+        "README.md": "Pattern index with categorization"
+      },
+      "rationale": "Organized design pattern library by GOF categories."
+    },
+    {
+      "path": "/steps",
+      "type": "migration",
+      "description": "Motia Framework Migration Project - 15 event-driven steps",
+      "status": "8.9% complete (2/15 steps ready)",
+      "subdirectories": {
+        "config-service": {
+          "status": "complete",
+          "files": 8,
+          "pattern": "Singleton + Factory"
+        },
+        "database-service": {
+          "status": "partial",
+          "files": "1/8 (handler.ts only)",
+          "pattern": "Repository + Facade"
+        },
+        "auth-middleware": {"status": "pending", "pattern": "Chain of Responsibility"},
+        "rate-limiter": {"status": "pending", "pattern": "Token Bucket"},
+        "claude-service": {"status": "pending", "pattern": "Facade + Observer"},
+        "mcp-manager": {"status": "pending", "pattern": "Observer + Factory"},
+        "mcp-context-handler": {"status": "pending", "pattern": "Strategy + Mediator"},
+        "bot-command-start": {"status": "pending", "pattern": "Command"},
+        "bot-command-help": {"status": "pending", "pattern": "Command"},
+        "bot-message-stream": {"status": "pending", "pattern": "Observer + Mediator"},
+        "image-processor": {"status": "pending", "pattern": "Pipeline"},
+        "scheduled-prompts": {"status": "pending", "pattern": "Observer + Template"},
+        "availability-monitor": {"status": "pending", "pattern": "Circuit Breaker"},
+        "localization-service": {"status": "pending", "pattern": "Strategy + Factory"},
+        "formatter-service": {"status": "pending", "pattern": "Strategy + Template"}
+      },
+      "rationale": "Active migration from monolithic Telegram bot (93 files, 34K lines) to modular event-driven architecture."
+    },
+    {
+      "path": "/markdown-service",
+      "type": "tooling",
+      "files": [
+        "motia-md-service.py",
+        "motia-md-service.sh",
+        "motia-drakon-converter.py",
+        "MOTIA-SERVICE-README.md",
+        "GENERATION-REPORT.md",
+        "QUICK-START.md",
+        "drakon.md"
+      ],
+      "rationale": "Markdown aggregation service for 3-level Claude CLI context preparation. Production-ready v1.0."
+    },
+    {
+      "path": "/step-descriptions",
+      "type": "generated",
+      "files": ["README.md", "*.md (generated)"],
+      "rationale": "Generated step descriptions from automation workflow. Dynamically populated."
+    },
+    {
+      "path": "/docs",
+      "type": "documentation",
+      "files": [
+        "ARCHITECTURAL_ANALYSIS.md",
+        "aggregate-workflow-guide.md",
+        "claude-cli-usage-guide.md",
+        "step-description-template.md",
+        "usage-examples.md"
+      ],
+      "rationale": "Supporting documentation and guides."
+    },
+    {
+      "path": "/docs/reference",
+      "type": "archived",
+      "files": [
+        "motia.md",
+        "Claude.md",
+        "src.md",
+        "motia-claude-prompt.md",
+        "claude-cli-motia-system.md",
+        "claude-cli-project-reengineering-prompt.md"
+      ],
+      "rationale": "Large reference documents and legacy prompts. Archived but preserved."
+    },
+    {
+      "path": "/config",
+      "type": "metadata",
+      "files": [
+        "motia_project_structure.json",
+        "motia_design_patterns.csv",
+        "step_structure.json",
+        "motia_patterns.png",
+        "motia-project-audit-report-2025-10-09.md"
+      ],
+      "rationale": "Project metadata, structure definitions, and audit reports."
+    }
+  ],
+
+  "step_mappings": [
+    {
+      "name": "config-service",
+      "pattern": "Singleton + Factory",
+      "type": "noop",
+      "runtime": "typescript",
+      "status": "complete",
+      "current_location": "motia-output/steps/config-service/",
+      "keep": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon"],
+      "create": [],
+      "tests": ["unit"],
+      "estimate_hours": 0,
+      "dependencies": []
+    },
+    {
+      "name": "database-service",
+      "pattern": "Repository + Facade",
+      "type": "noop",
+      "runtime": "typescript",
+      "status": "partial",
+      "current_location": "motia-output/steps/database-service/",
+      "keep": ["handler.ts"],
+      "create": ["config.json", "schema.json", "README.md", "diagrams/logic-flow.drakon", "diagrams/error-handling.drakon", "diagrams/data-processing.drakon", "diagrams/state-transitions.drakon"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 2,
+      "dependencies": ["config-service"],
+      "generation_command": "./unified-motia-workflow.sh docs database-service && ./unified-motia-workflow.sh drakon database-service && ./unified-motia-workflow.sh validate database-service"
+    },
+    {
+      "name": "auth-middleware",
+      "pattern": "Chain of Responsibility + Strategy",
+      "type": "api",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_auth.ts"],
+      "tests": ["unit", "integration", "e2e"],
+      "estimate_hours": 4,
+      "dependencies": ["config-service", "database-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline auth-middleware api chain-of-responsibility 'Multi-provider authentication middleware' typescript"
+    },
+    {
+      "name": "rate-limiter",
+      "pattern": "Token Bucket Algorithm",
+      "type": "api",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_rate_limiter.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 3,
+      "dependencies": ["config-service", "database-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline rate-limiter api token-bucket 'Token bucket rate limiting with cost tracking' typescript"
+    },
+    {
+      "name": "claude-service",
+      "pattern": "Facade + Observer",
+      "type": "api",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_claude.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 6,
+      "dependencies": ["config-service", "database-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline claude-service api facade 'Claude CLI integration with streaming support' typescript"
+    },
+    {
+      "name": "mcp-manager",
+      "pattern": "Observer + Factory",
+      "type": "event",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_mcp.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 5,
+      "dependencies": ["config-service", "database-service", "claude-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline mcp-manager event observer 'MCP server lifecycle management' typescript"
+    },
+    {
+      "name": "mcp-context-handler",
+      "pattern": "Strategy + Mediator",
+      "type": "event",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_mcp_context.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 4,
+      "dependencies": ["mcp-manager", "claude-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline mcp-context-handler event strategy 'Context-aware MCP query execution' typescript"
+    },
+    {
+      "name": "bot-command-start",
+      "pattern": "Command",
+      "type": "api",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_start.ts"],
+      "tests": ["unit", "e2e"],
+      "estimate_hours": 2,
+      "dependencies": ["auth-middleware", "localization-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline bot-command-start api command '/start command handler - Initialize bot for user' typescript"
+    },
+    {
+      "name": "bot-command-help",
+      "pattern": "Command",
+      "type": "api",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_help.ts"],
+      "tests": ["unit", "e2e"],
+      "estimate_hours": 2,
+      "dependencies": ["auth-middleware", "localization-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline bot-command-help api command '/help command handler - Show available commands' typescript"
+    },
+    {
+      "name": "bot-message-stream",
+      "pattern": "Observer + Mediator",
+      "type": "stream",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_stream.ts"],
+      "tests": ["unit", "integration", "e2e"],
+      "estimate_hours": 6,
+      "dependencies": ["claude-service", "formatter-service", "auth-middleware"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline bot-message-stream stream observer 'Real-time message processing with streaming responses' typescript"
+    },
+    {
+      "name": "image-processor",
+      "pattern": "Pipeline",
+      "type": "event",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_image.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 4,
+      "dependencies": ["claude-service", "config-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline image-processor event pipeline 'Image validation optimization and Claude Vision processing' typescript"
+    },
+    {
+      "name": "scheduled-prompts",
+      "pattern": "Observer + Template Method",
+      "type": "cron",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_scheduled.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 4,
+      "dependencies": ["claude-service", "database-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline scheduled-prompts cron observer 'Execute Claude prompts on schedule during DND periods' typescript"
+    },
+    {
+      "name": "availability-monitor",
+      "pattern": "Circuit Breaker + Observer",
+      "type": "cron",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_monitor.ts"],
+      "tests": ["unit", "integration"],
+      "estimate_hours": 3,
+      "dependencies": ["config-service", "claude-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline availability-monitor cron circuit-breaker 'Monitor Claude CLI availability and notify users' typescript"
+    },
+    {
+      "name": "localization-service",
+      "pattern": "Strategy + Factory",
+      "type": "noop",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_i18n.ts", "locales/uk.json", "locales/en.json"],
+      "tests": ["unit"],
+      "estimate_hours": 3,
+      "dependencies": ["database-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline localization-service noop strategy 'Multi-language support (Ukrainian/English i18n)' typescript"
+    },
+    {
+      "name": "formatter-service",
+      "pattern": "Strategy + Template Method",
+      "type": "noop",
+      "runtime": "typescript",
+      "status": "pending",
+      "current_location": null,
+      "keep": [],
+      "create": ["handler.ts", "config.json", "schema.json", "README.md", "diagrams/*.drakon", "test_formatter.ts"],
+      "tests": ["unit"],
+      "estimate_hours": 3,
+      "dependencies": ["localization-service"],
+      "generation_command": "./unified-motia-workflow.sh full-pipeline formatter-service noop strategy 'Response formatting for Telegram (markdown, splitting, escaping)' typescript"
+    }
+  ],
+
+  "migration_plan": [
+    {
+      "step_order": 1,
+      "description": "Create refactoring branch",
+      "command": "git checkout -b refactor/motia-steps",
+      "checkpoint": "PR #1 - Branch created",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 2,
+      "description": "Create new directory structure",
+      "command": "mkdir -p scripts scripts/legacy markdown-service step-descriptions docs docs/reference config && echo 'Directory structure created'",
+      "checkpoint": "PR #2 - Structure ready",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 3,
+      "description": "Archive large documentation files",
+      "command": "tar czf archive-docs-$(date +%Y%m%d).tar.gz motia.md Claude.md src.md && mv *.tar.gz docs/reference/ && git mv motia.md Claude.md src.md docs/reference/",
+      "checkpoint": "PR #3 - Docs archived",
+      "estimated_time": "2 min"
+    },
+    {
+      "step_order": 4,
+      "description": "Move active scripts to scripts/",
+      "command": "git mv unified-motia-workflow.sh create-step-description.sh aggregate-step-to-md.sh scripts/",
+      "checkpoint": "PR #4 - Scripts organized",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 5,
+      "description": "Archive legacy scripts",
+      "command": "tar czf archive-scripts-$(date +%Y%m%d).tar.gz motia-claude-workflow.sh full-generate-motia-step.sh run_md_service.sh md_to_embeddings_service_v4.py && git mv motia-claude-workflow.sh full-generate-motia-step.sh run_md_service.sh md_to_embeddings_service_v4.py scripts/legacy/",
+      "checkpoint": "PR #5 - Legacy archived",
+      "estimated_time": "2 min"
+    },
+    {
+      "step_order": 6,
+      "description": "Move markdown service",
+      "command": "git mv gen-md-refactor markdown-service",
+      "checkpoint": "PR #6 - Markdown service relocated",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 7,
+      "description": "Move migration project steps to root",
+      "command": "git mv motia-output/steps ./steps",
+      "checkpoint": "PR #7 - Steps at root level",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 8,
+      "description": "Move supporting docs",
+      "command": "git mv aggregate-workflow-guide.md claude-cli-usage-guide.md step-description-template.md usage-examples.md docs/ && git mv ARCHITECTURAL_ANALYSIS.md docs/",
+      "checkpoint": "PR #8 - Docs organized",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 9,
+      "description": "Move metadata files",
+      "command": "git mv motia_project_structure.json motia_design_patterns.csv step_structure.json motia_patterns.png motia-project-audit-report-2025-10-09.md config/",
+      "checkpoint": "PR #9 - Config organized",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 10,
+      "description": "Update imports in scripts",
+      "command": "cd scripts && rg -l \"gen-md-refactor\" | xargs sed -i 's|gen-md-refactor|../markdown-service|g' && rg -l \"motia-output/steps\" | xargs sed -i 's|motia-output/steps|../steps|g'",
+      "checkpoint": "PR #10 - Imports updated",
+      "estimated_time": "2 min"
+    },
+    {
+      "step_order": 11,
+      "description": "Create step-descriptions placeholder",
+      "command": "mkdir -p step-descriptions && cat > step-descriptions/README.md <<'EOF'\n# Step Descriptions\n\nGenerated step descriptions from automation workflow.\n\n## Usage\n\nDescriptions are created by:\n\\`\\`\\`bash\n./scripts/unified-motia-workflow.sh describe <step-name> ...\n\\`\\`\\`\nEOF",
+      "checkpoint": "PR #11 - Placeholder created",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 12,
+      "description": "Reorganize patterns by category",
+      "command": "cd patterns && mkdir -p behavioral creational && mv observer-pattern.md command-pattern.md strategy-pattern.md chain-of-responsibility-pattern.md state-pattern.md mediator-pattern.md template-method-pattern.md behavioral/ && mv factory-pattern.md creational/",
+      "checkpoint": "PR #12 - Patterns categorized",
+      "estimated_time": "1 min"
+    },
+    {
+      "step_order": 13,
+      "description": "Complete database-service",
+      "command": "cd /home/vokov/motia && ./scripts/unified-motia-workflow.sh docs database-service && ./scripts/unified-motia-workflow.sh drakon database-service && ./scripts/unified-motia-workflow.sh validate database-service",
+      "checkpoint": "PR #13 - database-service complete",
+      "estimated_time": "10 min"
+    },
+    {
+      "step_order": 14,
+      "description": "Generate critical steps (auth, rate-limiter, claude-service)",
+      "command": "cd /home/vokov/motia && ./scripts/unified-motia-workflow.sh full-pipeline auth-middleware api chain-of-responsibility 'Multi-provider authentication middleware' typescript && ./scripts/unified-motia-workflow.sh full-pipeline rate-limiter api token-bucket 'Token bucket rate limiting' typescript && ./scripts/unified-motia-workflow.sh full-pipeline claude-service api facade 'Claude CLI integration' typescript",
+      "checkpoint": "PR #14 - Critical steps generated",
+      "estimated_time": "60 min"
+    },
+    {
+      "step_order": 15,
+      "description": "Run validation suite",
+      "command": "cd /home/vokov/motia && for step in config-service database-service auth-middleware rate-limiter claude-service; do ./scripts/unified-motia-workflow.sh validate $step; done",
+      "checkpoint": "PR #15 - Validation passed",
+      "estimated_time": "5 min"
+    },
+    {
+      "step_order": 16,
+      "description": "Update SESSION-CONTEXT.md with new structure",
+      "command": "# Manual: Update SESSION-CONTEXT.md §🗂 Структура проєкту to reflect new organization",
+      "checkpoint": "PR #16 - Docs updated",
+      "estimated_time": "15 min"
+    },
+    {
+      "step_order": 17,
+      "description": "Create MIGRATION-COMPLETE.md report",
+      "command": "./scripts/unified-motia-workflow.sh status > MIGRATION-COMPLETE.md && echo '\\n\\n## Refactoring Summary\\n- Organized into 10 logical directories\\n- Archived 2.7MB+ documentation\\n- 5 steps ready (33% of critical path)\\n- unified-motia-workflow.sh as single entry point' >> MIGRATION-COMPLETE.md",
+      "checkpoint": "PR #17 - Migration report",
+      "estimated_time": "5 min"
+    },
+    {
+      "step_order": 18,
+      "description": "Final commit and push",
+      "command": "git add -A && git commit -m 'refactor: Reorganize Motia project structure v2.1\\n\\n- Consolidate into logical directories (scripts, docs, steps, etc)\\n- Archive large docs and legacy scripts\\n- Complete database-service\\n- Generate 3 critical steps (auth, rate-limiter, claude-service)\\n- Update all import paths\\n- 33% of critical migration path complete' && git push origin refactor/motia-steps",
+      "checkpoint": "PR #18 - Ready for review",
+      "estimated_time": "2 min"
+    }
+  ],
+
+  "prompt_templates": {
+    "project_level": "Analyze the Motia project at [project_root]. This is a code-first event-driven framework with three subsystems: (1) Automation System for AI-assisted Step generation with 8 design patterns, (2) Migration Project converting a monolithic Telegram bot into 15 modular Steps (currently 8.9% complete), (3) Markdown Service for 3-level context aggregation. Produce a high-level refactoring plan following Motia conventions (CLAUDE-CORE.md) focusing on: completing the 13 pending steps, organizing the flat file structure into logical directories, archiving bloat (4+ MB of documentation), and establishing unified-motia-workflow.sh as the single automation entry point. Prioritize: [priority_areas]. Consider dependencies between steps per the event-driven architecture.",
+
+    "pattern_level": "For the [pattern_name] pattern in the Motia project, analyze related modules and propose optimal runtime (TypeScript preferred, Python for AI/ML) and step structure. Pattern details: [pattern_description]. Related steps: [step_names]. Provide: (1) Pattern implementation strategy following Motia Step conventions (config + handler), (2) Event topology (subscribes/emits), (3) Dependencies on other steps, (4) Testing strategy (unit/integration/e2e), (5) Migration details if refactoring existing code. Output format: Step definition with config.json, schema.json, handler skeleton, and README.md.",
+
+    "step_level": "Refactor [step_name] of type [step_type] into an isolated Motia Step under /steps/[step_name]. Requirements: Pattern=[pattern_name], Runtime=[runtime], Dependencies=[dependencies]. Generate: (1) handler.[ts|py] implementing the [pattern_name] pattern with proper error handling and structured logging, (2) config.json with step metadata (name, type, emits, subscribes), (3) schema.json with input/output JSON schemas using Zod (TS) or Pydantic (Python), (4) README.md with overview, API reference, usage examples, and integration points, (5) Four DRAKON diagrams: logic-flow, error-handling, data-processing, state-transitions, (6) test_[step_name].[ts|py] with unit and integration tests. Follow CLAUDE-CORE.md conventions: use ctx.logger for logging, ctx.emit for events, ctx.state for persistence. Include detailed comments and JSDoc/docstrings.",
+
+    "batch_generation": "Generate the following [n] Motia Steps in batch using the unified-motia-workflow.sh automation: [step_list_with_details]. For each step, execute full-pipeline command: init → describe → aggregate → generate → docs → drakon → validate → integrate. Track progress with status command after each step. Ensure: (1) Sequential generation respecting dependencies, (2) Validation passes before proceeding, (3) All 8 files generated per step (handler, config, schema, README, 4 DRAKON diagrams), (4) Integration updates motia-config.json and FILE_INDEX.md. Estimated time: [n] × 22 minutes = [total] minutes. Output final status report with completion percentage.",
+
+    "validation": "Validate the Motia project at [project_root] ensuring: (1) All steps have required files (handler, config.json, schema.json, README.md, diagrams/), (2) JSON files are syntactically valid, (3) TypeScript handlers compile without errors, (4) Event topology is consistent (all emitted events are subscribed somewhere), (5) Dependencies are declared and available, (6) Import paths are correct after refactoring, (7) Tests exist and pass. Use: ./scripts/unified-motia-workflow.sh validate [step_name] for per-step validation. Generate validation report with: files checked, errors found, warnings, recommendations.",
+
+    "context_aggregation": "Aggregate 3-level context for generating [step_name] using Markdown Service: (1) Project Context: CLAUDE-CORE.md, README.md, project structure, available patterns; (2) Pattern Context: [pattern_name]-pattern.md with implementation guide, examples, best practices; (3) Step Context: existing [step_name] code (if any), dependencies, event subscriptions/emissions, related steps. Output three markdown files in markdown-service/output/: motia-project-context.md, motia-pattern-[pattern].md, [step_name]-complete.md. Use for Claude CLI command: claude --context-file <file1> --context-file <file2> --context-file <file3> -p '[generation_prompt]'."
+  },
+
+  "risk_assessment": [
+    {
+      "category": "backward_compatibility",
+      "level": "medium",
+      "note": "Moving scripts to scripts/ and gen-md-refactor to markdown-service/ will break any external scripts or CI/CD that reference old paths. Mitigation: Create symlinks for critical paths, document migration in MIGRATION-COMPLETE.md.",
+      "mitigation_command": "ln -s scripts/unified-motia-workflow.sh unified-motia-workflow.sh && ln -s markdown-service gen-md-refactor"
+    },
+    {
+      "category": "data_loss",
+      "level": "low",
+      "note": "All file operations use git mv (not rm), and large files are archived with tar.gz before moving. No risk of data loss.",
+      "mitigation_command": "All archives stored in docs/reference/ and scripts/legacy/ with timestamps"
+    },
+    {
+      "category": "incomplete_migration",
+      "level": "high",
+      "note": "Currently only 8.9% of migration complete (2/15 steps). Risk that remaining 13 steps (104 files) won't be generated, leaving project in incomplete state.",
+      "mitigation_command": "Use batch generation script (step 14 in migration plan) with unified-motia-workflow.sh. Estimated 4-6 hours for all 13 steps. Priority: Complete critical path (database, auth, rate-limiter, claude-service) first."
+    },
+    {
+      "category": "performance",
+      "level": "low",
+      "note": "Refactoring is organizational only - no changes to runtime code or algorithms. No performance impact.",
+      "mitigation_command": "N/A"
+    },
+    {
+      "category": "import_paths",
+      "level": "medium",
+      "note": "Scripts reference gen-md-refactor/ and motia-output/steps/ which are being moved. Step 10 uses ripgrep+sed to update imports but may miss some references.",
+      "mitigation_command": "After migration: rg -i 'gen-md-refactor|motia-output' --type-add 'script:*.{sh,py}' --type script | Review and manually fix any remaining references"
+    },
+    {
+      "category": "test_coverage",
+      "level": "medium",
+      "note": "No existing test suite. Generated steps will have test files but need to be executed and validated.",
+      "mitigation_command": "After step generation: npm test or pytest for each step. Add to CI/CD pipeline."
+    }
+  ],
+
+  "tests_and_ci": [
+    {
+      "type": "validation",
+      "command": "./scripts/unified-motia-workflow.sh validate <step-name>",
+      "description": "Validate step structure: required files, JSON syntax, DRAKON diagrams",
+      "frequency": "After each step generation"
+    },
+    {
+      "type": "unit",
+      "command": "cd steps/<step-name> && npm run test:unit",
+      "description": "Run unit tests for TypeScript steps",
+      "frequency": "Per step, pre-commit"
+    },
+    {
+      "type": "unit_python",
+      "command": "cd steps/<step-name> && pytest test_*.py -v",
+      "description": "Run unit tests for Python steps",
+      "frequency": "Per step, pre-commit"
+    },
+    {
+      "type": "integration",
+      "command": "npm run test:integration",
+      "description": "Test event flows between steps",
+      "frequency": "After critical path complete"
+    },
+    {
+      "type": "e2e",
+      "command": "npm run test:e2e",
+      "description": "End-to-end workflow tests (API → Events → Processing)",
+      "frequency": "Before merge to main"
+    },
+    {
+      "type": "status",
+      "command": "./scripts/unified-motia-workflow.sh status",
+      "description": "Generate project status report (completion %)",
+      "frequency": "Daily during migration"
+    }
+  ],
+
+  "files_to_archive": [
+    "./motia.md",
+    "./Claude.md",
+    "./src.md",
+    "./md_to_embeddings_service_v4.py",
+    "./run_md_service.sh",
+    "./motia-claude-workflow.sh",
+    "./full-generate-motia-step.sh",
+    "./motia-claude-prompt.md",
+    "./claude-cli-motia-system.md",
+    "./claude-cli-project-reengineering-prompt.md"
+  ],
+
+  "import_update_commands": [
+    {
+      "description": "Update gen-md-refactor references to markdown-service",
+      "command": "rg -l 'gen-md-refactor' --type-add 'script:*.{sh,py,ts,js}' --type script | xargs sed -i 's|gen-md-refactor|markdown-service|g'"
+    },
+    {
+      "description": "Update motia-output/steps references to steps",
+      "command": "rg -l 'motia-output/steps' --type-add 'script:*.{sh,py,ts,js}' --type script | xargs sed -i 's|motia-output/steps|steps|g'"
+    },
+    {
+      "description": "Update script paths (root to scripts/)",
+      "command": "rg -l '\\./motia-claude-workflow\\.sh|\\./full-generate-motia-step\\.sh|\\./create-step-description\\.sh|\\./aggregate-step-to-md\\.sh' --type-add 'doc:*.md' --type doc | xargs sed -i 's|\\./\\([^/]*\\.sh\\)|./scripts/\\1|g'"
+    },
+    {
+      "description": "Verify no broken references remain",
+      "command": "rg 'gen-md-refactor|motia-output/steps|(?<!\\./)(?:motia-claude-workflow|full-generate-motia-step|create-step-description|aggregate-step-to-md)\\.sh' --type-add 'relevant:*.{sh,py,ts,js,md}' --type relevant || echo 'All imports updated successfully'"
+    }
+  ],
+
+  "human_readable_plan": "# Motia Refactoring Plan\n\n## Overview\nRefactor flat Motia project structure (4MB+ docs, 12 scripts, 2 steps at root) into organized hierarchy. Complete migration from monolithic Telegram bot (93 files → 15 Motia Steps, currently 8.9% done).\n\n## Key Actions\n1. **Organize files** into logical dirs: scripts/, docs/, steps/, markdown-service/, patterns/, config/\n2. **Archive bloat**: motia.md (2.7MB), Claude.md (679KB), src.md (1.3MB) → docs/reference/\n3. **Archive legacy**: Old scripts → scripts/legacy/ with timestamps\n4. **Complete migration**: database-service + 13 pending steps (auth, rate-limiter, claude-service, ...)\n5. **Update imports**: All paths adjusted via ripgrep + sed\n6. **Validate**: unified-motia-workflow.sh validate for all steps\n\n## Priority\nCritical path (33%): database-service, auth-middleware, rate-limiter, claude-service\n\n## Timeline\n- Refactoring: 20 min\n- Critical steps: 60 min\n- Full migration (13 steps): 4-6 hours\n- Total: ~7 hours\n\n## Risk\n- Medium: Import path updates (mitigated by batch sed)\n- High: Incomplete migration (mitigated by unified workflow automation)\n\n## Success Criteria\n- ✅ All 15 steps generated (100%)\n- ✅ Validation passes for all steps\n- ✅ Directory structure logical and documented\n- ✅ No broken imports\n- ✅ unified-motia-workflow.sh as single entry point",
+
+  "next_steps_immediate": [
+    "1. Review this REFACTORING-ANALYSIS.json",
+    "2. Execute migration plan steps 1-12 (structural refactoring, ~20 min)",
+    "3. Complete database-service (step 13, ~10 min)",
+    "4. Generate critical steps: auth-middleware, rate-limiter, claude-service (step 14, ~60 min)",
+    "5. Validate all generated steps (step 15, ~5 min)",
+    "6. Update SESSION-CONTEXT.md and create MIGRATION-COMPLETE.md (steps 16-17, ~20 min)",
+    "7. Push refactor/motia-steps branch and create PR (step 18, ~2 min)"
+  ],
+
+  "estimated_effort": {
+    "structural_refactoring": "20 minutes",
+    "complete_database_service": "10 minutes",
+    "generate_3_critical_steps": "60 minutes",
+    "generate_remaining_10_steps": "220 minutes (3.7 hours)",
+    "validation_and_testing": "30 minutes",
+    "documentation_updates": "20 minutes",
+    "total_estimated": "6-7 hours for complete refactoring and migration"
+  },
+
+  "success_metrics": {
+    "completion_percentage": "Target: 100% (15/15 steps)",
+    "files_generated": "Target: 123 files (15 steps × 8 files + docs)",
+    "validation_passed": "Target: 100% (all steps validate)",
+    "tests_passing": "Target: 80%+ (unit + integration)",
+    "documentation_complete": "Target: All READMEs written",
+    "import_paths_correct": "Target: 0 broken references"
+  }
+}

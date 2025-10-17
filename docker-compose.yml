@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  drakon-viewer:
+    image: nginx:alpine
+    container_name: motia_drakon_viewer
+    ports:
+      - "8080:80"
+    volumes:
+      # Монтуємо конфігурацію Nginx
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Монтуємо фронтенд
+      - ./tools/drakon-viewer/public:/usr/share/nginx/html:ro
+      # Монтуємо директорію з діаграмами
+      - ./motia-output/steps:/usr/share/nginx/html/diagrams:ro
+    restart: unless-stopped
