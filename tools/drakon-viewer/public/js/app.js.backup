@@ -1,6 +1,3 @@
-// ⚙️ Refactored for native drakonWidget API integration
-// All custom insertion logic replaced with official drakonwidget methods
-
 document.addEventListener('DOMContentLoaded', () => {
     const diagramNav = document.getElementById('diagram-nav');
     const drakonContainer = document.getElementById('drakon-container');
@@ -52,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let drakonWidget = null;
     let currentEditingItemId = null;
+    let lastAddedNodePosition = { x: 100, y: 100 };
     let currentCanvas = null;
     let zoomLevel = 1.0;
     let panState = {
@@ -62,6 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollTop: 0
     };
     let loadingTimeout = null;
+
+    // Insertion mode state
+    let insertionMode = {
+        active: false,
+        nodeType: null,
+        sockets: []
+    };
 
     // Initialize State Manager
     const stateManager = new DiagramStateManager();
@@ -312,19 +317,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-save current diagram on changes
     stateManager.on('stateChange', () => {
-        console.log('💾 stateChange event fired - auto-saving...');
-
         updateHistoryButtons();
         updateDiagramInfo();
 
         // Auto-save to localStorage
         const diagram = stateManager.getDiagram();
         if (diagram && diagram.id) {
-            console.log('💾 Auto-saving diagram to localStorage:', diagram.id);
-            console.log('💾 Total nodes in diagram:', Object.keys(diagram.items || {}).length);
             saveDiagramToStorage(diagram);
-        } else {
-            console.log('⚠️ Cannot auto-save: no diagram ID');
         }
     });
 
@@ -633,76 +632,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Create edit sender (required for setDiagram)
-    // Delegates all edit operations to stateManager
     function createEditSender() {
         return {
-            stop: function() {
-                console.log('🛑 EditSender.stop() called');
-            },
+            stop: function() {},
             pushEdit: function(edit) {
-                console.log('📝 EditSender.pushEdit() called');
-                console.log('📝 Edit mode:', stateManager.isEditMode());
-                console.log('📝 Edit data:', JSON.stringify(edit, null, 2));
-
                 if (!stateManager.isEditMode()) {
-                    console.warn('❌ Edit blocked (read-only mode)');
-                    return Promise.resolve();
+                    console.log('Edit blocked (read-only mode):', edit);
+                    return;
                 }
 
-                // Get current diagram reference that drakonWidget is using
-                const diagram = stateManager.getDiagram();
-                if (!diagram || !diagram.items) {
-                    console.error('❌ No diagram available for edit');
-                    return Promise.reject(new Error('No diagram available'));
-                }
+                console.log('Edit received:', JSON.stringify(edit, null, 2));
 
-                console.log('📝 Current diagram nodes BEFORE edit:', Object.keys(diagram.items).length);
+                // Apply edit to state manager
+                const currentDiagram = stateManager.getDiagramCopy();
 
-                // Apply changes directly to the diagram that drakonWidget is using
-                try {
-                    if (edit.changes && Array.isArray(edit.changes)) {
-                        for (const change of edit.changes) {
-                            console.log(`📝 Processing change: ${change.op} on node ${change.id || 'new'}`);
-
+                // Handle changes array (DrakonWidget format)
+                if (edit.changes && Array.isArray(edit.changes)) {
+                    for (const change of edit.changes) {
+                        if (change.id) {
+                            // Item-level change
                             switch (change.op) {
-                                case 'insert': {
-                                    const id = change.id || stateManager.generateItemId(diagram);
-                                    diagram.items[id] = change.fields;
-                                    console.log(`✅ Inserted node ${id}:`, change.fields);
+                                case 'insert':
+                                    // Insert new item
+                                    currentDiagram.items[change.id] = change.fields;
                                     break;
-                                }
-                                case 'update': {
-                                    if (diagram.items[change.id]) {
-                                        Object.assign(diagram.items[change.id], change.fields);
-                                        console.log(`✅ Updated node ${change.id}:`, change.fields);
-                                    } else {
-                                        console.warn(`⚠️ Cannot update - node ${change.id} not found`);
+                                case 'update':
+                                    // Update existing item
+                                    if (currentDiagram.items[change.id]) {
+                                        Object.assign(currentDiagram.items[change.id], change.fields);
                                     }
                                     break;
-                                }
-                                case 'delete': {
-                                    delete diagram.items[change.id];
-                                    console.log(`✅ Deleted node ${change.id}`);
+                                case 'delete':
+                                    // Delete item
+                                    delete currentDiagram.items[change.id];
                                     break;
-                                }
                                 default:
-                                    console.warn('⚠️ Unknown operation:', change.op);
+                                    console.warn('Unknown change operation:', change.op);
                             }
+                        } else {
+                            // Diagram-level change
+                            Object.assign(currentDiagram, change.fields);
                         }
                     }
-
-                    console.log('📝 Current diagram nodes AFTER edit:', Object.keys(diagram.items).length);
-                    console.log('📝 All node IDs:', Object.keys(diagram.items).join(', '));
-
-                    // Save to history through stateManager
-                    console.log('💾 Calling stateManager.updateDiagram() to save to history...');
-                    stateManager.updateDiagram(diagram, true);
-
-                    console.log('✅ Edit applied successfully, diagram saved to history');
-                    return Promise.resolve();
-                } catch (err) {
-                    console.error('❌ Error applying edit:', err);
-                    return Promise.reject(err);
+                    stateManager.updateDiagram(currentDiagram, true);
+                    reloadCurrentDiagram();
+                } else {
+                    // Legacy format (single operation)
+                    if (edit.op === 'update' && edit.fields) {
+                        if (currentDiagram.items[edit.id]) {
+                            Object.assign(currentDiagram.items[edit.id], edit.fields);
+                            stateManager.updateDiagram(currentDiagram, true);
+                        }
+                    } else if (edit.op === 'delete') {
+                        stateManager.deleteItem(edit.id);
+                    } else {
+                        console.warn('Unknown edit operation:', edit);
+                    }
                 }
             }
         };
@@ -794,9 +779,217 @@ document.addEventListener('DOMContentLoaded', () => {
         closeSidebarOnMobile();
     }
 
-    // ==================== NODE INSERTION ====================
-    // Uses native drakonWidget.showInsertionSockets() API
-    //
+    // ==================== INSERTION SOCKET SYSTEM ====================
+
+    // Calculate insertion socket positions for a given node type
+    function calculateInsertionSockets(nodeType) {
+        const diagram = stateManager.getDiagram();
+        if (!diagram || !diagram.items) {
+            return [];
+        }
+
+        const sockets = [];
+        const items = diagram.items;
+
+        // For each node, find connection points
+        for (const itemId in items) {
+            const item = items[itemId];
+
+            // Socket after 'one' connection (next below)
+            if (item.one) {
+                const nextItem = items[item.one];
+                if (nextItem) {
+                    sockets.push({
+                        id: `socket_${itemId}_one`,
+                        beforeId: itemId,
+                        afterId: item.one,
+                        connection: 'one',
+                        position: {
+                            x: (item.x || 0),
+                            y: ((item.y || 0) + (nextItem.y || 0)) / 2
+                        }
+                    });
+                }
+            }
+
+            // Socket after 'two' connection (next right for branches)
+            if (item.two) {
+                const nextItem = items[item.two];
+                if (nextItem) {
+                    sockets.push({
+                        id: `socket_${itemId}_two`,
+                        beforeId: itemId,
+                        afterId: item.two,
+                        connection: 'two',
+                        position: {
+                            x: ((item.x || 0) + (nextItem.x || 0)) / 2,
+                            y: (item.y || 0)
+                        }
+                    });
+                }
+            }
+
+            // Socket at the end of a node without connections (except 'end' nodes)
+            if (!item.one && !item.two && item.type !== 'end') {
+                sockets.push({
+                    id: `socket_${itemId}_end`,
+                    beforeId: itemId,
+                    afterId: null,
+                    connection: 'one',
+                    position: {
+                        x: (item.x || 0),
+                        y: (item.y || 0) + 100
+                    }
+                });
+            }
+        }
+
+        return sockets;
+    }
+
+    // Render insertion sockets on the canvas
+    function renderInsertionSockets() {
+        if (!insertionMode.active || !currentCanvas) {
+            return;
+        }
+
+        const container = drakonContainer;
+
+        // Remove existing socket overlays
+        container.querySelectorAll('.insertion-socket').forEach(el => el.remove());
+
+        // Get canvas position and scale
+        const canvasRect = currentCanvas.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        insertionMode.sockets.forEach(socket => {
+            const socketEl = document.createElement('div');
+            socketEl.className = 'insertion-socket';
+            socketEl.dataset.socketId = socket.id;
+            socketEl.innerHTML = '+';
+            socketEl.title = 'Вставити вузол тут';
+
+            // Calculate position relative to container
+            const x = (socket.position.x * zoomLevel) + (canvasRect.left - containerRect.left);
+            const y = (socket.position.y * zoomLevel) + (canvasRect.top - containerRect.top);
+
+            socketEl.style.position = 'absolute';
+            socketEl.style.left = `${x}px`;
+            socketEl.style.top = `${y}px`;
+            socketEl.style.transform = 'translate(-50%, -50%)';
+
+            // Add click handler
+            socketEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                insertNodeAtSocket(socket);
+            });
+
+            container.appendChild(socketEl);
+        });
+    }
+
+    // Insert node at a specific socket position
+    function insertNodeAtSocket(socket) {
+        if (!insertionMode.active || !insertionMode.nodeType) {
+            return;
+        }
+
+        const diagram = stateManager.getDiagram();
+        if (!diagram || !diagram.items) {
+            return;
+        }
+
+        const nodeType = insertionMode.nodeType;
+
+        // Create new node at socket position
+        const newNode = {
+            type: nodeType,
+            content: nodeType === 'end' ? '' : `New ${nodeType}`,
+            branchId: 1,
+            x: socket.position.x,
+            y: socket.position.y
+        };
+
+        // Add the new node
+        const newId = stateManager.addItem(newNode);
+
+        if (newId) {
+            // Update connections
+            const beforeItem = diagram.items[socket.beforeId];
+
+            if (socket.afterId) {
+                // Insert between two nodes
+                // Update new node to point to after node
+                stateManager.updateItem(newId, { [socket.connection]: socket.afterId });
+                // Update before node to point to new node
+                stateManager.updateItem(socket.beforeId, { [socket.connection]: newId });
+            } else {
+                // Insert at the end
+                stateManager.updateItem(socket.beforeId, { [socket.connection]: newId });
+            }
+        }
+
+        // Deactivate insertion mode
+        deactivateInsertionMode();
+
+        // Reload diagram
+        reloadCurrentDiagram();
+    }
+
+    // Activate insertion mode
+    function activateInsertionMode(nodeType) {
+        if (!stateManager.isEditMode()) {
+            alert('Увімкніть режим редагування для додавання вузлів');
+            return;
+        }
+
+        const diagram = stateManager.getDiagram();
+        if (!diagram || !diagram.items) {
+            alert('Спочатку відкрийте або створіть діаграму');
+            return;
+        }
+
+        insertionMode.active = true;
+        insertionMode.nodeType = nodeType;
+        insertionMode.sockets = calculateInsertionSockets(nodeType);
+
+        // Render insertion sockets
+        renderInsertionSockets();
+
+        // Visual feedback - highlight active palette item
+        document.querySelectorAll('.icon-item').forEach(item => {
+            if (item.getAttribute('data-type') === nodeType) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // Add escape key handler to cancel insertion mode
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                deactivateInsertionMode();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+    }
+
+    // Deactivate insertion mode
+    function deactivateInsertionMode() {
+        insertionMode.active = false;
+        insertionMode.nodeType = null;
+        insertionMode.sockets = [];
+
+        // Remove socket overlays
+        drakonContainer.querySelectorAll('.insertion-socket').forEach(el => el.remove());
+
+        // Remove active class from palette items
+        document.querySelectorAll('.icon-item').forEach(item => {
+            item.classList.remove('active');
+        });
+    }
+
     // Add new node using DrakonWidget's built-in insertion socket system
     function addNode(type) {
         if (!stateManager.isEditMode()) {
@@ -867,18 +1060,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reload current diagram from state manager
     function reloadCurrentDiagram() {
-        // IMPORTANT: Use getDiagram() not getDiagramCopy()
-        // We need to pass the same reference that editSender will mutate
-        const diagram = stateManager.getDiagram();
-        if (!diagram) {
-            console.warn('⚠️ reloadCurrentDiagram: No diagram to reload');
-            return;
-        }
-
-        console.log('🔄 Reloading diagram:', diagram.name);
-        console.log('🔄 Total nodes:', Object.keys(diagram.items || {}).length);
-        console.log('🔄 Node IDs:', Object.keys(diagram.items || {}).join(', '));
-        console.log('🔄 Edit mode:', stateManager.isEditMode());
+        const diagram = stateManager.getDiagramCopy();
+        if (!diagram) return;
 
         // Set access mode based on edit mode
         diagram.access = stateManager.isEditMode() ? 'write' : 'read';
@@ -891,56 +1074,37 @@ document.addEventListener('DOMContentLoaded', () => {
             diagram,
             sender
         );
-
-        // Force redraw to ensure diagram appears
-        console.log('🔄 Calling redraw()...');
-        drakonWidget.redraw();
-        console.log('✅ Diagram reloaded successfully');
     }
 
     // Save diagram changes
     async function saveDiagram() {
-        const diagram = stateManager.getDiagram(); // Use getDiagram() to get current state with all changes
-        if (!diagram) {
-            alert('Немає діаграми для збереження');
+        const diagram = stateManager.getDiagramCopy();
+        if (!diagram || !diagram.path) {
+            console.error('No diagram path to save to');
+            alert('Не вдалося зберегти: шлях до файлу не знайдено');
             return;
         }
 
-        console.log('💾 Saving diagram:', diagram.name);
-        console.log('💾 Total nodes:', Object.keys(diagram.items || {}).length);
-        console.log('💾 Diagram data:', JSON.stringify(diagram, null, 2));
-
         try {
-            // Export as JSON file (for both localStorage and file-based diagrams)
-            const exportData = {
-                name: diagram.name,
-                access: diagram.access || 'write',
-                params: diagram.params || [],
-                items: diagram.items || {}
-            };
-
-            const json = JSON.stringify(exportData, null, 2);
+            // In a real implementation, this would save to a backend
+            // For now, we'll just download as JSON
+            const json = JSON.stringify(diagram, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = (diagram.name || 'diagram').replace(/[^a-zA-Z0-9]/g, '_') + '.json';
+            a.download = diagram.path.split('/').pop() || 'diagram.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-
-            // Also save to localStorage if it has an ID
-            if (diagram.id) {
-                saveDiagramToStorage(diagram);
-            }
 
             stateManager.markAsSaved();
             updateHistoryButtons();
             alert('Діаграму збережено! (завантажено як файл)');
         } catch (error) {
             console.error('Error saving diagram:', error);
-            alert('Помилка збереження діаграми: ' + error.message);
+            alert('Помилка збереження діаграми');
         }
     }
 
@@ -1146,25 +1310,11 @@ document.addEventListener('DOMContentLoaded', () => {
         drakonContainer.innerHTML = '';
 
         const config = buildConfig();
-
-        // Create canvas with extra space for zooming (3x size to accommodate 3x zoom)
-        // This prevents diagram from being cut off when zoomed in
-        const canvasWidth = (rect.width || 800) * 3;
-        const canvasHeight = (rect.height || 600) * 3;
-
-        console.log('🎨 Rendering canvas:', canvasWidth, 'x', canvasHeight);
-
         currentCanvas = drakonWidget.render(
-            canvasWidth,
-            canvasHeight,
+            rect.width || 800,
+            rect.height || 600,
             config
         );
-
-        // Apply initial zoom transform
-        if (currentCanvas) {
-            currentCanvas.style.transform = `scale(${zoomLevel})`;
-            currentCanvas.style.transformOrigin = 'center center';
-        }
 
         drakonContainer.appendChild(currentCanvas);
     }
@@ -1311,87 +1461,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-
-    // ==================== TESTING API ====================
-    // Expose functions for automated testing
-    window.DrakonTestAPI = {
-        createDiagram: (name) => {
-            const newDiagram = {
-                name: name,
-                access: 'write',
-                params: [],
-                items: {
-                    '1': {
-                        id: '1',
-                        type: 'header',
-                        content: name,
-                        branchId: 1,
-                        one: '2'
-                    },
-                    '2': {
-                        id: '2',
-                        type: 'end',
-                        content: '',
-                        branchId: 1
-                    }
-                }
-            };
-
-            const diagramId = saveDiagramToStorage(newDiagram);
-            if (diagramId) {
-                newDiagram.id = diagramId;
-            }
-
-            diagramTitle.textContent = name;
-            stateManager.loadDiagram(newDiagram);
-            stateManager.setEditMode(true);
-
-            editModeBtn.textContent = '👁️ Перегляд';
-            editModeIndicator.style.display = 'inline';
-            saveBtn.style.display = 'inline-block';
-            addNodeButtons.style.display = 'flex';
-
-            initDrakonWidget();
-            reloadCurrentDiagram();
-            resetZoom();
-            populateDiagramsList();
-
-            return newDiagram;
-        },
-
-        enableEditMode: () => {
-            if (!stateManager.isEditMode()) {
-                toggleEditMode();
-            }
-        },
-
-        disableEditMode: () => {
-            if (stateManager.isEditMode()) {
-                toggleEditMode();
-            }
-        },
-
-        addNode: (type) => {
-            return addNode(type);
-        },
-
-        getDiagram: () => {
-            return stateManager.getDiagram();
-        },
-
-        saveDiagram: () => {
-            return saveDiagram();
-        },
-
-        getNodeCount: () => {
-            const diagram = stateManager.getDiagram();
-            return diagram && diagram.items ? Object.keys(diagram.items).length : 0;
-        },
-
-        isEditMode: () => {
-            return stateManager.isEditMode();
-        }
-    };
 
     // Initialize all features
     setupPanZoom();
