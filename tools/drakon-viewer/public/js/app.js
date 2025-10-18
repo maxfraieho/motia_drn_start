@@ -1316,15 +1316,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Expose functions for automated testing
     window.DrakonTestAPI = {
         createDiagram: (name) => {
+            // Ensure name is a string
+            const diagramName = String(name || 'Test Diagram');
+
             const newDiagram = {
-                name: name,
+                name: diagramName,
                 access: 'write',
                 params: [],
                 items: {
                     '1': {
                         id: '1',
                         type: 'header',
-                        content: name,
+                        content: String(diagramName),
                         branchId: 1,
                         one: '2'
                     },
@@ -1342,7 +1345,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 newDiagram.id = diagramId;
             }
 
-            diagramTitle.textContent = name;
+            diagramTitle.textContent = diagramName;
             stateManager.loadDiagram(newDiagram);
             stateManager.setEditMode(true);
 
