@@ -1,22 +1,22 @@
 [
   {
-    "step": "example-step",
+    "step": "Приклади",
     "name": "Example Workflow",
-    "path": "/diagrams/example_workflow.json"
+    "path": "diagrams/example_workflow.json"
   },
   {
-    "step": "bot-service",
+    "step": "Bot Service",
     "name": "Bot Core Flow",
-    "path": "/diagrams/bot-core-flow.json"
+    "path": "diagrams/bot-core-flow.json"
   },
   {
-    "step": "bot-service",
+    "step": "Bot Service",
     "name": "Message Handler Flow",
-    "path": "/diagrams/message-handler-flow.json"
+    "path": "diagrams/message-handler-flow.json"
   },
   {
-    "step": "bot-service",
+    "step": "Bot Service",
     "name": "Claude Integration Flow",
-    "path": "/diagrams/claude-integration-flow.json"
+    "path": "diagrams/claude-integration-flow.json"
   }
 ]

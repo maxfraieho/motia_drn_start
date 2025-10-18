@@ -2,24 +2,433 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1b26">
     <title>Motia DRAKON Viewer</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Sidebar backdrop for mobile -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Edit content modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Редагувати вузол</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label for="edit-content">Контент:</label>
+                <textarea id="edit-content" rows="5" placeholder="Введіть текст вузла..."></textarea>
+
+                <label for="edit-type">Тип:</label>
+                <select id="edit-type">
+                    <optgroup label="Основні">
+                        <option value="action">Action (Дія)</option>
+                        <option value="question">Question (Питання)</option>
+                        <option value="branch">Branch (Розгалуження)</option>
+                        <option value="end">End (Кінець)</option>
+                        <option value="header">Header (Заголовок)</option>
+                        <option value="comment">Comment (Коментар)</option>
+                    </optgroup>
+                    <optgroup label="Цикли">
+                        <option value="loopbegin">Loop Begin (Початок циклу)</option>
+                        <option value="loopend">Loop End (Кінець циклу)</option>
+                        <option value="foreach">For Each (Цикл по елементах)</option>
+                        <option value="select">Select (Вибір)</option>
+                    </optgroup>
+                    <optgroup label="Розширені">
+                        <option value="case">Case (Вибір з варіантів)</option>
+                        <option value="address">Address (Посилання)</option>
+                        <option value="insertion">Insertion (Вставка)</option>
+                        <option value="shelf">Shelf (Полиця)</option>
+                        <option value="par">Parallel (Паралельно)</option>
+                        <option value="timer">Timer (Таймер)</option>
+                    </optgroup>
+                    <optgroup label="Ввід/Вивід">
+                        <option value="input">Input (Введення)</option>
+                        <option value="output">Output (Виведення)</option>
+                        <option value="storage">Storage (Збереження)</option>
+                        <option value="pause">Pause (Пауза)</option>
+                    </optgroup>
+                    <optgroup label="Спеціальні">
+                        <option value="procedure">Procedure (Процедура)</option>
+                        <option value="process">Process (Процес)</option>
+                        <option value="duration">Duration (Тривалість)</option>
+                        <option value="group">Group (Група)</option>
+                        <option value="arrow">Arrow (Стрілка)</option>
+                        <option value="skewer">Skewer (Вертикальна лінія)</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="toolbar-btn" id="modal-cancel">Скасувати</button>
+                <button class="toolbar-btn" id="modal-save" style="background-color: var(--accent-color); color: white;">Зберегти</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="sidebar">
+        <!-- Sidebar navigation -->
+        <div class="sidebar" id="sidebar">
             <h1>DRAKON Діаграми</h1>
             <nav id="diagram-nav">
                 <!-- Список буде згенеровано динамічно -->
             </nav>
         </div>
+
+        <!-- Main content area -->
         <main class="main-content">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button class="toolbar-btn icon-only" id="menu-btn" aria-label="Меню" title="Відкрити меню">
+                    ☰
+                </button>
+                <div class="toolbar-separator"></div>
+
+                <!-- Edit Mode Toggle -->
+                <button class="toolbar-btn" id="edit-mode-btn" title="Увімкнути режим редагування">
+                    ✏️ Редагувати
+                </button>
+                <div class="toolbar-separator"></div>
+
+                <!-- New Diagram -->
+                <button class="toolbar-btn" id="new-diagram-btn" title="Створити нову діаграму">
+                    📄 Нова
+                </button>
+                <div class="toolbar-separator"></div>
+
+                <!-- Add Node buttons (shown in edit mode) -->
+                <div id="add-node-buttons" style="display: none;">
+                    <button class="toolbar-btn icon-only" id="add-action-btn" title="Додати Action (Дія)" data-type="action">
+                        ▭
+                    </button>
+                    <button class="toolbar-btn icon-only" id="add-question-btn" title="Додати Question (Питання)" data-type="question">
+                        ◇
+                    </button>
+                    <button class="toolbar-btn icon-only" id="add-branch-btn" title="Додати Branch (Розгалуження)" data-type="branch">
+                        ⑂
+                    </button>
+                    <button class="toolbar-btn icon-only" id="add-end-btn" title="Додати End (Кінець)" data-type="end">
+                        ●
+                    </button>
+                    <button class="toolbar-btn icon-only" id="delete-node-btn" title="Видалити виділений вузол (Delete)">
+                        🗑️
+                    </button>
+                    <div class="toolbar-separator"></div>
+                </div>
+
+                <!-- Undo/Redo (only in edit mode) -->
+                <button class="toolbar-btn" id="undo-btn" title="Скасувати (Ctrl+Z)" disabled>
+                    ↶
+                </button>
+                <button class="toolbar-btn" id="redo-btn" title="Повторити (Ctrl+Y)" disabled>
+                    ↷
+                </button>
+                <div class="toolbar-separator"></div>
+
+                <!-- Zoom controls -->
+                <button class="toolbar-btn" id="zoom-in-btn" title="Збільшити">
+                    🔍+
+                </button>
+                <button class="toolbar-btn" id="zoom-out-btn" title="Зменшити">
+                    🔍−
+                </button>
+                <button class="toolbar-btn" id="reset-zoom-btn" title="Скинути масштаб">
+                    ↺
+                </button>
+                <div class="toolbar-separator"></div>
+
+                <!-- Save/Export -->
+                <button class="toolbar-btn" id="save-btn" title="Зберегти зміни" disabled style="display: none;">
+                    💾 Зберегти
+                </button>
+
+                <!-- Fullscreen -->
+                <button class="toolbar-btn" id="fullscreen-btn" title="Повноекранний режим">
+                    ⛶
+                </button>
+
+                <div style="flex: 1;"></div>
+
+                <!-- Status indicators -->
+                <span id="edit-mode-indicator" style="font-size: 11px; color: var(--text-color); display: none; margin-right: 8px;">
+                    📝 Режим редагування
+                </span>
+                <span id="unsaved-indicator" style="font-size: 11px; color: #f7768e; display: none; margin-right: 8px;">
+                    ● Незбережені зміни
+                </span>
+                <span id="zoom-level" style="font-size: 12px; color: var(--text-color);">100%</span>
+            </div>
+
+            <!-- Diagram title -->
             <h2 id="diagram-title">Оберіть діаграму для перегляду</h2>
-            <div id="drakon-container"></div>
+
+            <!-- Diagram container -->
+            <div id="drakon-container">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Завантаження...</p>
+                </div>
+            </div>
+
+            <!-- Floating button to restore Properties Panel (mobile) -->
+            <button class="floating-panel-btn" id="floating-panel-btn" title="Показати панель інструментів" style="display: none;">
+                🛠️
+            </button>
         </main>
+
+        <!-- Properties Panel (Right Sidebar) -->
+        <aside class="properties-panel" id="properties-panel">
+            <div class="panel-header">
+                <h3>Інструменти</h3>
+                <button class="panel-toggle" id="panel-toggle" title="Згорнути/Розгорнути">
+                    ◀
+                </button>
+            </div>
+
+            <!-- Icon Palette Section -->
+            <section class="panel-section">
+                <h4>Палітра іконок</h4>
+
+                <!-- Basic Elements -->
+                <details class="palette-category" open>
+                    <summary>Основні</summary>
+                    <div class="icon-palette">
+                        <div class="icon-item" data-type="action" draggable="true" title="Action - Дія або команда">
+                            <div class="icon-symbol">▭</div>
+                            <span>Action</span>
+                        </div>
+                        <div class="icon-item" data-type="question" draggable="true" title="Question - Питання (Так/Ні)">
+                            <div class="icon-symbol">◇</div>
+                            <span>Question</span>
+                        </div>
+                        <div class="icon-item" data-type="branch" draggable="true" title="Branch - Розгалуження">
+                            <div class="icon-symbol">⑂</div>
+                            <span>Branch</span>
+                        </div>
+                        <div class="icon-item" data-type="end" draggable="true" title="End - Кінець">
+                            <div class="icon-symbol">●</div>
+                            <span>End</span>
+                        </div>
+                        <div class="icon-item" data-type="header" draggable="true" title="Header - Заголовок діаграми">
+                            <div class="icon-symbol">⬓</div>
+                            <span>Header</span>
+                        </div>
+                        <div class="icon-item" data-type="comment" draggable="true" title="Comment - Коментар">
+                            <div class="icon-symbol">💬</div>
+                            <span>Comment</span>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Loops -->
+                <details class="palette-category">
+                    <summary>Цикли</summary>
+                    <div class="icon-palette">
+                        <div class="icon-item" data-type="loopbegin" draggable="true" title="Loop Begin - Початок циклу">
+                            <div class="icon-symbol">⥁</div>
+                            <span>Loop Begin</span>
+                        </div>
+                        <div class="icon-item" data-type="loopend" draggable="true" title="Loop End - Кінець циклу">
+                            <div class="icon-symbol">⥀</div>
+                            <span>Loop End</span>
+                        </div>
+                        <div class="icon-item" data-type="foreach" draggable="true" title="For Each - Цикл по елементах">
+                            <div class="icon-symbol">⥁</div>
+                            <span>For Each</span>
+                        </div>
+                        <div class="icon-item" data-type="select" draggable="true" title="Select - Вибір зі списку">
+                            <div class="icon-symbol">⊟</div>
+                            <span>Select</span>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Advanced -->
+                <details class="palette-category">
+                    <summary>Розширені</summary>
+                    <div class="icon-palette">
+                        <div class="icon-item" data-type="case" draggable="true" title="Case - Вибір з варіантів">
+                            <div class="icon-symbol">⬡</div>
+                            <span>Case</span>
+                        </div>
+                        <div class="icon-item" data-type="address" draggable="true" title="Address - Посилання на іншу діаграму">
+                            <div class="icon-symbol">⬢</div>
+                            <span>Address</span>
+                        </div>
+                        <div class="icon-item" data-type="insertion" draggable="true" title="Insertion - Вставка">
+                            <div class="icon-symbol">⬒</div>
+                            <span>Insertion</span>
+                        </div>
+                        <div class="icon-item" data-type="shelf" draggable="true" title="Shelf - Полиця (група дій)">
+                            <div class="icon-symbol">⊏</div>
+                            <span>Shelf</span>
+                        </div>
+                        <div class="icon-item" data-type="par" draggable="true" title="Parallel - Паралельне виконання">
+                            <div class="icon-symbol">⋈</div>
+                            <span>Parallel</span>
+                        </div>
+                        <div class="icon-item" data-type="timer" draggable="true" title="Timer - Таймер або затримка">
+                            <div class="icon-symbol">⏱</div>
+                            <span>Timer</span>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Input/Output -->
+                <details class="palette-category">
+                    <summary>Ввід/Вивід</summary>
+                    <div class="icon-palette">
+                        <div class="icon-item" data-type="input" draggable="true" title="Input - Введення даних">
+                            <div class="icon-symbol">⇨</div>
+                            <span>Input</span>
+                        </div>
+                        <div class="icon-item" data-type="output" draggable="true" title="Output - Виведення даних">
+                            <div class="icon-symbol">⇦</div>
+                            <span>Output</span>
+                        </div>
+                        <div class="icon-item" data-type="storage" draggable="true" title="Storage - Збереження даних">
+                            <div class="icon-symbol">🗄</div>
+                            <span>Storage</span>
+                        </div>
+                        <div class="icon-item" data-type="pause" draggable="true" title="Pause - Пауза або очікування">
+                            <div class="icon-symbol">⏸</div>
+                            <span>Pause</span>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Medical/Special -->
+                <details class="palette-category">
+                    <summary>Спеціальні</summary>
+                    <div class="icon-palette">
+                        <div class="icon-item" data-type="procedure" draggable="true" title="Procedure - Процедура">
+                            <div class="icon-symbol">⚕</div>
+                            <span>Procedure</span>
+                        </div>
+                        <div class="icon-item" data-type="process" draggable="true" title="Process - Процес">
+                            <div class="icon-symbol">⚙</div>
+                            <span>Process</span>
+                        </div>
+                        <div class="icon-item" data-type="duration" draggable="true" title="Duration - Тривалість події">
+                            <div class="icon-symbol">⌚</div>
+                            <span>Duration</span>
+                        </div>
+                        <div class="icon-item" data-type="group" draggable="true" title="Group - Група елементів">
+                            <div class="icon-symbol">⊞</div>
+                            <span>Group</span>
+                        </div>
+                        <div class="icon-item" data-type="arrow" draggable="true" title="Arrow - Стрілка або перехід">
+                            <div class="icon-symbol">→</div>
+                            <span>Arrow</span>
+                        </div>
+                        <div class="icon-item" data-type="skewer" draggable="true" title="Skewer - Вертикальна лінія">
+                            <div class="icon-symbol">│</div>
+                            <span>Skewer</span>
+                        </div>
+                    </div>
+                </details>
+            </section>
+
+            <!-- File Operations Section -->
+            <section class="panel-section">
+                <h4>Файлові операції</h4>
+                <div class="file-operations">
+                    <button class="panel-btn" id="panel-new-btn" title="Створити нову діаграму (Ctrl+N)">
+                        <span>📄</span> Нова діаграма
+                    </button>
+                    <button class="panel-btn" id="panel-open-btn" title="Відкрити діаграму з JSON файлу">
+                        <span>📂</span> Відкрити файл
+                    </button>
+                    <button class="panel-btn" id="panel-save-btn" title="Зберегти діаграму як JSON (Ctrl+S)">
+                        <span>💾</span> Зберегти
+                    </button>
+                    <button class="panel-btn" id="panel-export-json-btn" title="Експортувати діаграму в JSON формат">
+                        <span>📥</span> Експорт JSON
+                    </button>
+                    <button class="panel-btn" id="panel-export-png-btn" title="Експортувати діаграму як PNG зображення">
+                        <span>🖼️</span> Експорт PNG
+                    </button>
+                </div>
+                <input type="file" id="file-input" accept=".json" style="display: none;">
+            </section>
+
+            <!-- Properties Section (for selected node) -->
+            <section class="panel-section" id="node-properties" style="display: none;">
+                <h4>Властивості вузла</h4>
+                <div class="properties-form">
+                    <label>ID:</label>
+                    <input type="text" id="prop-id" readonly>
+
+                    <label>Тип:</label>
+                    <select id="prop-type">
+                        <optgroup label="Основні">
+                            <option value="action">Action</option>
+                            <option value="question">Question</option>
+                            <option value="branch">Branch</option>
+                            <option value="end">End</option>
+                            <option value="header">Header</option>
+                            <option value="comment">Comment</option>
+                        </optgroup>
+                        <optgroup label="Цикли">
+                            <option value="loopbegin">Loop Begin</option>
+                            <option value="loopend">Loop End</option>
+                            <option value="foreach">For Each</option>
+                            <option value="select">Select</option>
+                        </optgroup>
+                        <optgroup label="Розширені">
+                            <option value="case">Case</option>
+                            <option value="address">Address</option>
+                            <option value="insertion">Insertion</option>
+                            <option value="shelf">Shelf</option>
+                            <option value="par">Parallel</option>
+                            <option value="timer">Timer</option>
+                        </optgroup>
+                        <optgroup label="Ввід/Вивід">
+                            <option value="input">Input</option>
+                            <option value="output">Output</option>
+                            <option value="storage">Storage</option>
+                            <option value="pause">Pause</option>
+                        </optgroup>
+                        <optgroup label="Спеціальні">
+                            <option value="procedure">Procedure</option>
+                            <option value="process">Process</option>
+                            <option value="duration">Duration</option>
+                            <option value="group">Group</option>
+                            <option value="arrow">Arrow</option>
+                            <option value="skewer">Skewer</option>
+                        </optgroup>
+                    </select>
+
+                    <label>Контент:</label>
+                    <textarea id="prop-content" rows="3"></textarea>
+
+                    <label>Branch ID:</label>
+                    <input type="number" id="prop-branch" min="1" value="1">
+
+                    <div class="properties-actions">
+                        <button class="panel-btn" id="prop-apply" title="Застосувати зміни до виділеного вузла">Застосувати</button>
+                        <button class="panel-btn" id="prop-delete" title="Видалити виділений вузол (Delete)">Видалити</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diagram Info Section -->
+            <section class="panel-section">
+                <h4>Інформація</h4>
+                <div class="diagram-info">
+                    <p><strong>Діаграма:</strong> <span id="info-name">-</span></p>
+                    <p><strong>Вузлів:</strong> <span id="info-nodes">0</span></p>
+                    <p><strong>Режим:</strong> <span id="info-mode">Перегляд</span></p>
+                </div>
+            </section>
+        </aside>
     </div>
+
     <script src="js/drakonwidget.js"></script>
+    <script src="js/state-manager.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

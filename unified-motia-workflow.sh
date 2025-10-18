@@ -399,14 +399,37 @@ cmd_drakon() {
     log_info "  • .drn файли → Відкрийте в DRAKON Editor (desktop)"
     log_info "  • .json файли → Завантажте на https://drakonhub.com/editor або перегляньте локально"
     echo
-    log_info "Наступний крок: ./unified-motia-workflow.sh validate $step_name"
+
+    # Копіюємо JSON діаграми в viewer
+    local viewer_diagrams_dir="$SCRIPT_DIR/tools/drakon-viewer/public/diagrams"
+    if [ -d "$diagrams_dir" ]; then
+        log_info "Копіювання діаграм до DRAKON Viewer..."
+        mkdir -p "$viewer_diagrams_dir"
+
+        # Копіюємо JSON файли
+        local json_count=0
+        for json_file in "$diagrams_dir"/*.json; do
+            if [ -f "$json_file" ]; then
+                cp -v "$json_file" "$viewer_diagrams_dir/"
+                ((json_count++))
+            fi
+        done
+
+        if [ $json_count -gt 0 ]; then
+            log_success "Скопійовано $json_count JSON файлів до $viewer_diagrams_dir"
+        fi
+    fi
 
     # Оновлюємо індекс для локального переглядача
     local indexer_script="$SCRIPT_DIR/tools/drakon-viewer/generate-diagram-index.sh"
     if [ -f "$indexer_script" ]; then
         log_info "Оновлення індексу для локального переглядача..."
         bash "$indexer_script"
+        log_success "Індекс оновлено"
     fi
+
+    echo
+    log_info "Наступний крок: ./unified-motia-workflow.sh validate $step_name"
 }
 
 cmd_validate() {
