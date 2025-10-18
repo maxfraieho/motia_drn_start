@@ -707,17 +707,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'header',
                     content: diagramName,
                     branchId: 1,
-                    x: 200,
-                    y: 50,
                     one: '2'
                 },
                 '2': {
                     id: '2',
                     type: 'end',
                     content: '',
-                    branchId: 1,
-                    x: 200,
-                    y: 150
+                    branchId: 1
                 }
             }
         };
@@ -963,9 +959,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Add new node (now activates insertion mode)
+    // Add new node (simplified - adds to end of diagram)
     function addNode(type) {
-        activateInsertionMode(type);
+        if (!stateManager.isEditMode()) {
+            alert('Увімкніть режим редагування для додавання вузлів');
+            return;
+        }
+
+        const diagram = stateManager.getDiagram();
+        if (!diagram || !diagram.items) {
+            alert('Спочатку відкрийте або створіть діаграму');
+            return;
+        }
+
+        // Find the last node that doesn't have a connection
+        const items = diagram.items;
+        let targetNodeId = null;
+
+        // Look for a node without 'one' connection (excluding 'end' nodes)
+        for (const itemId in items) {
+            const item = items[itemId];
+            if (item.type !== 'end' && !item.one) {
+                targetNodeId = itemId;
+                break;
+            }
+        }
+
+        // Create new node
+        const newNode = {
+            type: type,
+            content: type === 'end' ? '' : `New ${type}`,
+            branchId: 1
+        };
+
+        // Add the new node
+        const newId = stateManager.addItem(newNode);
+
+        // Connect from the target node if found
+        if (newId && targetNodeId) {
+            stateManager.updateItem(targetNodeId, { one: newId });
+        }
+
+        // Reload diagram
+        reloadCurrentDiagram();
     }
 
     // Delete selected node
@@ -1235,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.icon-item').forEach(item => {
         item.addEventListener('click', () => {
             const type = item.getAttribute('data-type');
-            activateInsertionMode(type);
+            addNode(type);
         });
     });
 
