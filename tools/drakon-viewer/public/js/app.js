@@ -704,16 +704,20 @@ document.addEventListener('DOMContentLoaded', () => {
             items: {
                 '1': {
                     id: '1',
-                    type: 'action',
-                    content: 'Початок',
+                    type: 'header',
+                    content: diagramName,
                     branchId: 1,
+                    x: 200,
+                    y: 50,
                     one: '2'
                 },
                 '2': {
                     id: '2',
                     type: 'end',
                     content: '',
-                    branchId: 1
+                    branchId: 1,
+                    x: 200,
+                    y: 150
                 }
             }
         };
