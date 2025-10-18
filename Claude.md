@@ -20318,3 +20318,63 @@ To add more videos to this showcase, simply edit this file and add new video obj
 ## Optional
 -   [https://motiadev.com](https://motiadev.com): Main page for framework.
 -   [Github repo](https://github.com/motiadev/motia): Main github repository to file issues.
+
+---
+
+# 🎨 DRAKON Editor Development
+
+**Для роботи над DRAKON редактором діаграм використовуй окремий промт:**
+
+📄 **Шлях:** `/home/vokov/motia-drn/tools/drakon-viewer/Claude.md`
+
+## Швидкий старт з DRAKON Editor
+
+```bash
+# Переглянути методологію роботи
+cat /home/vokov/motia-drn/tools/drakon-viewer/Claude.md
+
+# Використовувати як промт для Claude CLI
+claude --project drakon-editor --prompt-file /home/vokov/motia-drn/tools/drakon-viewer/Claude.md
+```
+
+## ⚠️ Критично важливо для DRAKON
+
+**Перед будь-якими змінами в DRAKON редакторі:**
+
+1. **Дослідити DrakonWidget API** (не придумувати самому!)
+   - Шукати в `public/js/drakonwidget.js`
+   - Перевіряти офіційний репозиторій: https://github.com/stepan-mitkin/drakonwidget
+   - Дивитися demo: https://stepan-mitkin.github.io/drakonwidget/
+
+2. **Використовувати існуючі методи** замість реімплементації
+
+3. **Адаптувати паттерни** з офіційного `main.js`
+
+## Live Site & Resources
+
+- **Production:** https://dangerboys.exodus.pp.ua/
+- **Git:** https://github.com/maxfraieho/motia_drn_start
+- **Deployment:** `/home/vokov/motia-drn/tools/drakon-viewer/deploy.sh`
+- **Testing prompts:** `/home/vokov/motia-drn/promt/browser-testing-prompt.md`
+
+## Приклад правильного підходу
+
+```javascript
+// ❌ Неправильно - спроба реімплементувати
+function calculateInsertionSockets() {
+  const items = diagram.items;
+  for (const id in items) {
+    const x = item.x || 0;  // items НЕ мають координат!
+  }
+}
+
+// ✅ Правильно - використати вбудований API
+function addNode(type) {
+  drakonWidget.showInsertionSockets(type, null);
+  // DrakonWidget САМ все робить!
+}
+```
+
+**Детальніше:** `/home/vokov/motia-drn/tools/drakon-viewer/Claude.md`
+
+---
