@@ -750,16 +750,22 @@ document.addEventListener('DOMContentLoaded', () => {
             items: {
                 '1': {
                     id: '1',
-                    type: 'header',
-                    content: diagramName,
-                    branchId: 1,
-                    one: '2'
+                    type: 'branch',
+                    one: '2',
+                    branchId: 0
                 },
                 '2': {
                     id: '2',
+                    type: 'action',
+                    content: 'Start',
+                    one: '3',
+                    branchId: 0
+                },
+                '3': {
+                    id: '3',
                     type: 'end',
                     content: '',
-                    branchId: 1
+                    branchId: 0
                 }
             }
         };
@@ -1326,16 +1332,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 items: {
                     '1': {
                         id: '1',
-                        type: 'header',
-                        content: String(diagramName),
-                        branchId: 1,
-                        one: '2'
+                        type: 'branch',
+                        one: '2',
+                        branchId: 0
                     },
                     '2': {
                         id: '2',
+                        type: 'action',
+                        content: 'Start',
+                        one: '3',
+                        branchId: 0
+                    },
+                    '3': {
+                        id: '3',
                         type: 'end',
                         content: '',
-                        branchId: 1
+                        branchId: 0
                     }
                 }
             };
