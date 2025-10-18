@@ -639,14 +639,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log('Edit received from drakonWidget:', JSON.stringify(edit, null, 2));
 
-                // Delegate to stateManager which handles insert/update/delete operations
-                return stateManager.applyExternalEdit(edit)
-                    .then(() => {
-                        console.log('Edit applied successfully');
-                    })
-                    .catch((err) => {
-                        console.error('Error applying edit:', err);
-                    });
+                // Get current diagram reference that drakonWidget is using
+                const diagram = stateManager.getDiagram();
+                if (!diagram || !diagram.items) {
+                    console.error('No diagram available');
+                    return Promise.reject(new Error('No diagram available'));
+                }
+
+                // Apply changes directly to the diagram that drakonWidget is using
+                try {
+                    if (edit.changes && Array.isArray(edit.changes)) {
+                        for (const change of edit.changes) {
+                            switch (change.op) {
+                                case 'insert': {
+                                    const id = change.id || stateManager.generateItemId(diagram);
+                                    diagram.items[id] = change.fields;
+                                    console.log(`Inserted node ${id}:`, change.fields);
+                                    break;
+                                }
+                                case 'update': {
+                                    if (diagram.items[change.id]) {
+                                        Object.assign(diagram.items[change.id], change.fields);
+                                        console.log(`Updated node ${change.id}:`, change.fields);
+                                    }
+                                    break;
+                                }
+                                case 'delete': {
+                                    delete diagram.items[change.id];
+                                    console.log(`Deleted node ${change.id}`);
+                                    break;
+                                }
+                                default:
+                                    console.warn('Unknown operation:', change.op);
+                            }
+                        }
+                    }
+
+                    // Save to history through stateManager (without creating new copy)
+                    stateManager.updateDiagram(diagram, true);
+
+                    console.log('Edit applied successfully');
+                    return Promise.resolve();
+                } catch (err) {
+                    console.error('Error applying edit:', err);
+                    return Promise.reject(err);
+                }
             }
         };
     }
@@ -810,7 +847,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reload current diagram from state manager
     function reloadCurrentDiagram() {
-        const diagram = stateManager.getDiagramCopy();
+        // IMPORTANT: Use getDiagram() not getDiagramCopy()
+        // We need to pass the same reference that editSender will mutate
+        const diagram = stateManager.getDiagram();
         if (!diagram) return;
 
         // Set access mode based on edit mode
