@@ -641,22 +641,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                console.log('Edit received:', edit);
+                console.log('Edit received:', JSON.stringify(edit, null, 2));
 
                 // Apply edit to state manager
                 const currentDiagram = stateManager.getDiagramCopy();
 
-                if (edit.op === 'update' && edit.fields) {
-                    // Update item fields
-                    if (currentDiagram.items[edit.id]) {
-                        Object.assign(currentDiagram.items[edit.id], edit.fields);
-                        stateManager.updateDiagram(currentDiagram, true);
+                // Handle changes array (DrakonWidget format)
+                if (edit.changes && Array.isArray(edit.changes)) {
+                    for (const change of edit.changes) {
+                        if (change.id) {
+                            // Item-level change
+                            switch (change.op) {
+                                case 'insert':
+                                    // Insert new item
+                                    currentDiagram.items[change.id] = change.fields;
+                                    break;
+                                case 'update':
+                                    // Update existing item
+                                    if (currentDiagram.items[change.id]) {
+                                        Object.assign(currentDiagram.items[change.id], change.fields);
+                                    }
+                                    break;
+                                case 'delete':
+                                    // Delete item
+                                    delete currentDiagram.items[change.id];
+                                    break;
+                                default:
+                                    console.warn('Unknown change operation:', change.op);
+                            }
+                        } else {
+                            // Diagram-level change
+                            Object.assign(currentDiagram, change.fields);
+                        }
                     }
-                } else if (edit.op === 'delete') {
-                    // Delete item
-                    stateManager.deleteItem(edit.id);
+                    stateManager.updateDiagram(currentDiagram, true);
+                    reloadCurrentDiagram();
                 } else {
-                    console.warn('Unknown edit operation:', edit);
+                    // Legacy format (single operation)
+                    if (edit.op === 'update' && edit.fields) {
+                        if (currentDiagram.items[edit.id]) {
+                            Object.assign(currentDiagram.items[edit.id], edit.fields);
+                            stateManager.updateDiagram(currentDiagram, true);
+                        }
+                    } else if (edit.op === 'delete') {
+                        stateManager.deleteItem(edit.id);
+                    } else {
+                        console.warn('Unknown edit operation:', edit);
+                    }
                 }
             }
         };
@@ -959,7 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Add new node (simplified - adds to end of diagram)
+    // Add new node using DrakonWidget's built-in insertion socket system
     function addNode(type) {
         if (!stateManager.isEditMode()) {
             alert('Увімкніть режим редагування для додавання вузлів');
@@ -972,36 +1003,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Find the last node that doesn't have a connection
-        const items = diagram.items;
-        let targetNodeId = null;
-
-        // Look for a node without 'one' connection (excluding 'end' nodes)
-        for (const itemId in items) {
-            const item = items[itemId];
-            if (item.type !== 'end' && !item.one) {
-                targetNodeId = itemId;
-                break;
-            }
+        // Check if drakonWidget is available
+        if (!drakonWidget) {
+            console.error('DrakonWidget not initialized');
+            return;
         }
 
-        // Create new node
-        const newNode = {
-            type: type,
-            content: type === 'end' ? '' : `New ${type}`,
-            branchId: 1
-        };
-
-        // Add the new node
-        const newId = stateManager.addItem(newNode);
-
-        // Connect from the target node if found
-        if (newId && targetNodeId) {
-            stateManager.updateItem(targetNodeId, { one: newId });
-        }
-
-        // Reload diagram
-        reloadCurrentDiagram();
+        // Use DrakonWidget's built-in showInsertionSockets method
+        // This will display visual '+' markers on all edges where the node can be inserted
+        // imageData can be null for standard nodes
+        drakonWidget.showInsertionSockets(type, null);
     }
 
     // Delete selected node
