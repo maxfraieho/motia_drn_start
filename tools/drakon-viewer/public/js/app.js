@@ -312,13 +312,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-save current diagram on changes
     stateManager.on('stateChange', () => {
+        console.log('💾 stateChange event fired - auto-saving...');
+
         updateHistoryButtons();
         updateDiagramInfo();
 
         // Auto-save to localStorage
         const diagram = stateManager.getDiagram();
         if (diagram && diagram.id) {
+            console.log('💾 Auto-saving diagram to localStorage:', diagram.id);
+            console.log('💾 Total nodes in diagram:', Object.keys(diagram.items || {}).length);
             saveDiagramToStorage(diagram);
+        } else {
+            console.log('⚠️ Cannot auto-save: no diagram ID');
         }
     });
 
@@ -627,61 +633,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Create edit sender (required for setDiagram)
-    // Delegates all edit operations to stateManager.applyExternalEdit()
+    // Delegates all edit operations to stateManager
     function createEditSender() {
         return {
-            stop: function() {},
+            stop: function() {
+                console.log('🛑 EditSender.stop() called');
+            },
             pushEdit: function(edit) {
+                console.log('📝 EditSender.pushEdit() called');
+                console.log('📝 Edit mode:', stateManager.isEditMode());
+                console.log('📝 Edit data:', JSON.stringify(edit, null, 2));
+
                 if (!stateManager.isEditMode()) {
-                    console.log('Edit blocked (read-only mode):', edit);
+                    console.warn('❌ Edit blocked (read-only mode)');
                     return Promise.resolve();
                 }
-
-                console.log('Edit received from drakonWidget:', JSON.stringify(edit, null, 2));
 
                 // Get current diagram reference that drakonWidget is using
                 const diagram = stateManager.getDiagram();
                 if (!diagram || !diagram.items) {
-                    console.error('No diagram available');
+                    console.error('❌ No diagram available for edit');
                     return Promise.reject(new Error('No diagram available'));
                 }
+
+                console.log('📝 Current diagram nodes BEFORE edit:', Object.keys(diagram.items).length);
 
                 // Apply changes directly to the diagram that drakonWidget is using
                 try {
                     if (edit.changes && Array.isArray(edit.changes)) {
                         for (const change of edit.changes) {
+                            console.log(`📝 Processing change: ${change.op} on node ${change.id || 'new'}`);
+
                             switch (change.op) {
                                 case 'insert': {
                                     const id = change.id || stateManager.generateItemId(diagram);
                                     diagram.items[id] = change.fields;
-                                    console.log(`Inserted node ${id}:`, change.fields);
+                                    console.log(`✅ Inserted node ${id}:`, change.fields);
                                     break;
                                 }
                                 case 'update': {
                                     if (diagram.items[change.id]) {
                                         Object.assign(diagram.items[change.id], change.fields);
-                                        console.log(`Updated node ${change.id}:`, change.fields);
+                                        console.log(`✅ Updated node ${change.id}:`, change.fields);
+                                    } else {
+                                        console.warn(`⚠️ Cannot update - node ${change.id} not found`);
                                     }
                                     break;
                                 }
                                 case 'delete': {
                                     delete diagram.items[change.id];
-                                    console.log(`Deleted node ${change.id}`);
+                                    console.log(`✅ Deleted node ${change.id}`);
                                     break;
                                 }
                                 default:
-                                    console.warn('Unknown operation:', change.op);
+                                    console.warn('⚠️ Unknown operation:', change.op);
                             }
                         }
                     }
 
-                    // Save to history through stateManager (without creating new copy)
+                    console.log('📝 Current diagram nodes AFTER edit:', Object.keys(diagram.items).length);
+                    console.log('📝 All node IDs:', Object.keys(diagram.items).join(', '));
+
+                    // Save to history through stateManager
+                    console.log('💾 Calling stateManager.updateDiagram() to save to history...');
                     stateManager.updateDiagram(diagram, true);
 
-                    console.log('Edit applied successfully');
+                    console.log('✅ Edit applied successfully, diagram saved to history');
                     return Promise.resolve();
                 } catch (err) {
-                    console.error('Error applying edit:', err);
+                    console.error('❌ Error applying edit:', err);
                     return Promise.reject(err);
                 }
             }
@@ -850,7 +870,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // IMPORTANT: Use getDiagram() not getDiagramCopy()
         // We need to pass the same reference that editSender will mutate
         const diagram = stateManager.getDiagram();
-        if (!diagram) return;
+        if (!diagram) {
+            console.warn('⚠️ reloadCurrentDiagram: No diagram to reload');
+            return;
+        }
+
+        console.log('🔄 Reloading diagram:', diagram.name);
+        console.log('🔄 Total nodes:', Object.keys(diagram.items || {}).length);
+        console.log('🔄 Node IDs:', Object.keys(diagram.items || {}).join(', '));
+        console.log('🔄 Edit mode:', stateManager.isEditMode());
 
         // Set access mode based on edit mode
         diagram.access = stateManager.isEditMode() ? 'write' : 'read';
@@ -863,37 +891,56 @@ document.addEventListener('DOMContentLoaded', () => {
             diagram,
             sender
         );
+
+        // Force redraw to ensure diagram appears
+        console.log('🔄 Calling redraw()...');
+        drakonWidget.redraw();
+        console.log('✅ Diagram reloaded successfully');
     }
 
     // Save diagram changes
     async function saveDiagram() {
-        const diagram = stateManager.getDiagramCopy();
-        if (!diagram || !diagram.path) {
-            console.error('No diagram path to save to');
-            alert('Не вдалося зберегти: шлях до файлу не знайдено');
+        const diagram = stateManager.getDiagram(); // Use getDiagram() to get current state with all changes
+        if (!diagram) {
+            alert('Немає діаграми для збереження');
             return;
         }
 
+        console.log('💾 Saving diagram:', diagram.name);
+        console.log('💾 Total nodes:', Object.keys(diagram.items || {}).length);
+        console.log('💾 Diagram data:', JSON.stringify(diagram, null, 2));
+
         try {
-            // In a real implementation, this would save to a backend
-            // For now, we'll just download as JSON
-            const json = JSON.stringify(diagram, null, 2);
+            // Export as JSON file (for both localStorage and file-based diagrams)
+            const exportData = {
+                name: diagram.name,
+                access: diagram.access || 'write',
+                params: diagram.params || [],
+                items: diagram.items || {}
+            };
+
+            const json = JSON.stringify(exportData, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = diagram.path.split('/').pop() || 'diagram.json';
+            a.download = (diagram.name || 'diagram').replace(/[^a-zA-Z0-9]/g, '_') + '.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+
+            // Also save to localStorage if it has an ID
+            if (diagram.id) {
+                saveDiagramToStorage(diagram);
+            }
 
             stateManager.markAsSaved();
             updateHistoryButtons();
             alert('Діаграму збережено! (завантажено як файл)');
         } catch (error) {
             console.error('Error saving diagram:', error);
-            alert('Помилка збереження діаграми');
+            alert('Помилка збереження діаграми: ' + error.message);
         }
     }
 
@@ -1099,11 +1146,25 @@ document.addEventListener('DOMContentLoaded', () => {
         drakonContainer.innerHTML = '';
 
         const config = buildConfig();
+
+        // Create canvas with extra space for zooming (3x size to accommodate 3x zoom)
+        // This prevents diagram from being cut off when zoomed in
+        const canvasWidth = (rect.width || 800) * 3;
+        const canvasHeight = (rect.height || 600) * 3;
+
+        console.log('🎨 Rendering canvas:', canvasWidth, 'x', canvasHeight);
+
         currentCanvas = drakonWidget.render(
-            rect.width || 800,
-            rect.height || 600,
+            canvasWidth,
+            canvasHeight,
             config
         );
+
+        // Apply initial zoom transform
+        if (currentCanvas) {
+            currentCanvas.style.transform = `scale(${zoomLevel})`;
+            currentCanvas.style.transformOrigin = 'center center';
+        }
 
         drakonContainer.appendChild(currentCanvas);
     }
