@@ -1,14 +1,27 @@
 # DRAKON Editor - Повнофункціональний Редактор Діаграм
 
-**Версія:** 3.1 (Bugfix Release)
-**Статус:** Стабільна версія ✅
-**Дата:** 2025-10-17
+**Версія:** 3.2 (Insertion Socket System)
+**Статус:** Production Ready ✅
+**Дата:** 2025-10-18
+**Live:** https://dangerboys.exodus.pp.ua/
 
 ---
 
 ## 🚀 Швидкий Старт
 
-### Запуск
+### Production (Live Site)
+```bash
+# Автоматичний деплой (commit + push + restart nginx)
+cd /home/vokov/motia-drn/tools/drakon-viewer
+./deploy.sh "Your commit message"
+
+# Або manual деплой
+docker restart motia_drakon_viewer
+```
+
+Live: https://dangerboys.exodus.pp.ua/
+
+### Local Development
 ```bash
 cd /home/vokov/motia-drn/tools/drakon-viewer/public
 python3 -m http.server 8080
@@ -28,9 +41,10 @@ python3 -m http.server 8080
 
 ## ✨ Основні Можливості
 
-✅ **Повноцінне редагування діаграм**
+✅ **🆕 Insertion Socket System** - візуальні '+' маркери для вставки вузлів між існуючими
+✅ **Повноцінне редагування діаграм** - 26 типів вузлів у 5 категоріях
 ✅ **Undo/Redo** (історія до 50 станів)
-✅ **Properties Panel** з палітрою іконок
+✅ **Properties Panel** з collapsible палітрою іконок
 ✅ **LocalStorage** - автоматичне збереження діаграм у браузері
 ✅ **Інтерактивний Sidebar** - управління множинними діаграмами
 ✅ **File Management** (Open/Save/Export JSON/PNG)
@@ -39,7 +53,8 @@ python3 -m http.server 8080
 ✅ **Touch gestures** (pinch-to-zoom, swipe)
 ✅ **Pan/Zoom** навігація
 ✅ **State Management** система
-✅ **Tooltips** на всіх кнопках  
+✅ **Tooltips** на всіх елементах (40+)
+✅ **Error Handling** - timeout, fallback, recovery buttons  
 
 ---
 
@@ -189,6 +204,17 @@ User Action → Event Handler → State Manager →
 ---
 
 ## 📝 Changelog
+
+**v3.2** (2025-10-18) - Insertion Socket System
+- 🚀 **NEW:** Insertion Socket System - візуальні '+' маркери для вставки вузлів між існуючими
+- 🚀 **NEW:** Правильна початкова структура діаграми (Header з назвою → End)
+- ✨ Підсвічування активної іконки при insertion mode
+- ✨ ESC для скасування insertion mode
+- ✨ Hover ефекти на insertion sockets (scale 1.2 + glow)
+- ✨ Автоматичне оновлення з'єднань при вставці (підтримка one/two)
+- ✨ Tooltips на insertion sockets
+- ✨ Zoom-aware позиціонування маркерів
+- 🔧 Deploy script для автоматичного деплою
 
 **v3.1** (2025-10-17) - Bugfix Release
 - 🐛 **FIX:** Loader timeout (5 сек) + fallback error
