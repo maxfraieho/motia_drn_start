@@ -1,0 +1,27 @@
+{
+  "name": "print_error",
+  "access": "write",
+  "params": [],
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0,
+      "content": ""
+    },
+    "2": {
+      "type": "action",
+      "content": "START: print_error",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "CALL: print_error()",
+      "one": "4"
+    },
+    "4": {
+      "type": "end",
+      "content": ""
+    }
+  }
+}

@@ -362,7 +362,8 @@ def analyze_code_file(file_path: Path, output_dir: Path, format: str = 'both') -
                 diagram = DrakonDiagramJSON(
                     name=f"{func_name}",
                     access="write",
-                    items=items_dict
+                    items=items_dict,
+                    params=[]
                 )
 
                 exporter.export_diagram(diagram)

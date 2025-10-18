@@ -1,0 +1,47 @@
+{
+  "name": "print_header",
+  "access": "write",
+  "params": [],
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0,
+      "content": ""
+    },
+    "2": {
+      "type": "action",
+      "content": "START: print_header",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "CALL: print_header()",
+      "one": "4"
+    },
+    "4": {
+      "type": "action",
+      "content": "SET: echo -e \"${BLUE}",
+      "one": "5"
+    },
+    "5": {
+      "type": "action",
+      "content": "SET: echo -e \"${BLUE}",
+      "one": "6"
+    },
+    "6": {
+      "type": "action",
+      "content": "CALL: $()",
+      "one": "7"
+    },
+    "7": {
+      "type": "action",
+      "content": "SET: echo -e \"${BLUE}",
+      "one": "8"
+    },
+    "8": {
+      "type": "end",
+      "content": ""
+    }
+  }
+}

@@ -6953,7 +6953,7 @@ function createDrakonWidget() {
             while (true) {
                 switch (__state) {
                 case '5':
-                    text = node.content || '';
+                    text = String(node.content != null ? node.content : '');
                     if (visuals.config.canvasIcons) {
                         toptions = {
                             paddingLeft: paddingLeft,

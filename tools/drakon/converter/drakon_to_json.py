@@ -66,12 +66,13 @@ class DrakonDiagramJSON:
     - No 'diagram' wrapper!
     - 'items' is dictionary (not array!)
     - No separate 'links' array
-    - NO 'access' field (official examples don't have it!)
+    - 'access' field needed for editor write mode
     - 'style' must be JSON string (not object)
     """
     name: str  # Required
     items: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # Dictionary, not array!
-    params: Optional[str] = None  # Newline-separated parameters
+    access: str = "write"  # Access mode: "write" or "read"
+    params: Optional[List[str]] = field(default_factory=list)  # Parameters list
     style: Optional[str] = None  # JSON string (not object!)
 
 
@@ -130,18 +131,19 @@ class JsonExporter:
         - No 'diagram' wrapper
         - items as dictionary (string keys)
         - No separate links array
-        - NO 'access' field (official examples don't have it!)
+        - 'access' field needed for editor write mode
 
         Args:
             diagram: DrakonDiagramJSON object to export
         """
         # Build correct structure (no wrapper!)
         diagram_dict = {
-            "name": diagram.name
+            "name": diagram.name,
+            "access": diagram.access
         }
 
         # Add optional fields
-        if diagram.params:
+        if diagram.params is not None:
             diagram_dict["params"] = diagram.params
 
         if diagram.style:

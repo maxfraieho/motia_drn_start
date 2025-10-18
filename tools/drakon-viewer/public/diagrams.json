@@ -1,22 +1,67 @@
 [
   {
-    "step": "Приклади",
-    "name": "Example Workflow",
-    "path": "diagrams/example_workflow.json"
+    "step": "print_info",
+    "name": "Print_info",
+    "path": "diagrams/print_info.json"
   },
   {
-    "step": "Bot Service",
-    "name": "Bot Core Flow",
-    "path": "diagrams/bot-core-flow.json"
+    "step": "test_simple",
+    "name": "Test_simple",
+    "path": "diagrams/test_simple.json"
   },
   {
-    "step": "Bot Service",
-    "name": "Message Handler Flow",
+    "step": "print_error",
+    "name": "Print_error",
+    "path": "diagrams/print_error.json"
+  },
+  {
+    "step": "append",
+    "name": "Append",
+    "path": "diagrams/append.json"
+  },
+  {
+    "step": "print_header",
+    "name": "Print_header",
+    "path": "diagrams/print_header.json"
+  },
+  {
+    "step": "message",
+    "name": "Message handler flow",
     "path": "diagrams/message-handler-flow.json"
   },
   {
-    "step": "Bot Service",
-    "name": "Claude Integration Flow",
+    "step": "match",
+    "name": "Match",
+    "path": "diagrams/match.json"
+  },
+  {
+    "step": "bot",
+    "name": "Bot core flow",
+    "path": "diagrams/bot-core-flow.json"
+  },
+  {
+    "step": "warning",
+    "name": "Warning",
+    "path": "diagrams/warning.json"
+  },
+  {
+    "step": "int",
+    "name": "Int",
+    "path": "diagrams/int.json"
+  },
+  {
+    "step": "print_success",
+    "name": "Print_success",
+    "path": "diagrams/print_success.json"
+  },
+  {
+    "step": "example_workflow",
+    "name": "Example_workflow",
+    "path": "diagrams/example_workflow.json"
+  },
+  {
+    "step": "claude",
+    "name": "Claude integration flow",
     "path": "diagrams/claude-integration-flow.json"
   }
 ]

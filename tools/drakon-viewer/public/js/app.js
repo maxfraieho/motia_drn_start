@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             drawZones: false,
             canSelect: true,
-            canvasIcons: false,
+            canvasIcons: true,
             centerContent: true,
             textFormat: 'plain'
         };
@@ -749,23 +749,19 @@ document.addEventListener('DOMContentLoaded', () => {
             params: [],
             items: {
                 '1': {
-                    id: '1',
                     type: 'branch',
                     one: '2',
-                    branchId: 0
+                    branchId: 0,
+                    content: ''
                 },
                 '2': {
-                    id: '2',
                     type: 'action',
                     content: 'Start',
-                    one: '3',
-                    branchId: 0
+                    one: '3'
                 },
                 '3': {
-                    id: '3',
                     type: 'end',
-                    content: '',
-                    branchId: 0
+                    content: ''
                 }
             }
         };
@@ -885,6 +881,17 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🔄 Total nodes:', Object.keys(diagram.items || {}).length);
         console.log('🔄 Node IDs:', Object.keys(diagram.items || {}).join(', '));
         console.log('🔄 Edit mode:', stateManager.isEditMode());
+
+        // Ensure all items have content field (fix for drakonWidget text.split error)
+        if (diagram.items) {
+            for (const key in diagram.items) {
+                const item = diagram.items[key];
+                if (typeof item.content === 'undefined') {
+                    item.content = '';
+                    console.log(`🔧 Fixed missing content for node ${key}`);
+                }
+            }
+        }
 
         // Set access mode based on edit mode
         diagram.access = stateManager.isEditMode() ? 'write' : 'read';
@@ -1187,6 +1194,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const diagramData = await response.json();
 
+            // Ensure all items have content field (fix for drakonWidget text.split error)
+            if (diagramData.items) {
+                for (const key in diagramData.items) {
+                    const item = diagramData.items[key];
+                    if (typeof item.content === 'undefined') {
+                        item.content = '';
+                        console.log(`🔧 Fixed missing content for node ${key} in loaded diagram`);
+                    }
+                }
+            }
+
             // Store path for saving
             diagramData.path = path;
 
@@ -1331,23 +1349,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 params: [],
                 items: {
                     '1': {
-                        id: '1',
                         type: 'branch',
                         one: '2',
-                        branchId: 0
+                        branchId: 0,
+                        content: ''
                     },
                     '2': {
-                        id: '2',
                         type: 'action',
                         content: 'Start',
-                        one: '3',
-                        branchId: 0
+                        one: '3'
                     },
                     '3': {
-                        id: '3',
                         type: 'end',
-                        content: '',
-                        branchId: 0
+                        content: ''
                     }
                 }
             };

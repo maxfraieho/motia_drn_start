@@ -420,6 +420,24 @@ cmd_drakon() {
         fi
     fi
 
+    # Також копіюємо з motia-output/steps якщо існують
+    local steps_diagrams_dir="$SCRIPT_DIR/motia-output/steps"
+    if [ -d "$steps_diagrams_dir" ]; then
+        log_info "Копіювання діаграм з motia-output/steps..."
+
+        local json_count=0
+        for json_file in "$steps_diagrams_dir"/*.json; do
+            if [ -f "$json_file" ]; then
+                cp -v "$json_file" "$viewer_diagrams_dir/"
+                ((json_count++))
+            fi
+        done
+
+        if [ $json_count -gt 0 ]; then
+            log_success "Скопійовано $json_count додаткових JSON файлів з motia-output/steps"
+        fi
+    fi
+
     # Оновлюємо індекс для локального переглядача
     local indexer_script="$SCRIPT_DIR/tools/drakon-viewer/generate-diagram-index.sh"
     if [ -f "$indexer_script" ]; then

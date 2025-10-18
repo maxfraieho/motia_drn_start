@@ -1,0 +1,27 @@
+{
+  "name": "Test Simple Flow",
+  "access": "write",
+  "params": [],
+  "items": {
+    "1": {
+      "type": "branch",
+      "one": "2",
+      "branchId": 0,
+      "content": ""
+    },
+    "2": {
+      "type": "action",
+      "content": "Step 1",
+      "one": "3"
+    },
+    "3": {
+      "type": "action",
+      "content": "Step 2",
+      "one": "4"
+    },
+    "4": {
+      "type": "end",
+      "content": ""
+    }
+  }
+}

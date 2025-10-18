@@ -1,15 +1,34 @@
-# Generated output
-motia-output/
+# Node modules
+node_modules/
+test/node_modules/
+**/node_modules/
 
-# Python cache
+# Environment
+.env
+*.env
+gen-md-refactor/.env
+
+# Test artifacts
+test/test/*.png
+test/test/*.log
+*.log
+
+# Cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
+.pytest_cache/
 
-# Local settings
-.claude/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# OS-specific
+# OS
 .DS_Store
 Thumbs.db
+
+# Temporary
+*.tmp
+*.temp

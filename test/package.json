@@ -1,0 +1,12 @@
+{
+  "name": "drakon-playwright-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Automated browser tests for DRAKON Editor v3.2 (AI test prompt)",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "playwright": "^1.37.0"
+  }
+}
