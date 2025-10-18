@@ -1,3 +1,6 @@
+// ⚙️ Refactored for native drakonWidget API integration
+// Added applyExternalEdit() to handle official drakonwidget edits
+
 /**
  * State Manager for DRAKON Editor
  * Manages diagram state, history, and edit mode
@@ -142,6 +145,55 @@ class DiagramStateManager {
         }
 
         return true;
+    }
+
+    /**
+     * Apply external edits received from drakonWidget.editSender
+     * Supports operations: insert, update, delete
+     */
+    applyExternalEdit(edit) {
+        return new Promise((resolve, reject) => {
+            try {
+                const diagram = this.getDiagramCopy();
+
+                if (!edit.changes || !Array.isArray(edit.changes)) {
+                    console.warn('Invalid edit format: missing changes array');
+                    return resolve();
+                }
+
+                for (const change of edit.changes) {
+                    switch (change.op) {
+                        case 'insert': {
+                            const id = change.id || this.generateItemId(diagram);
+                            diagram.items[id] = change.fields;
+                            break;
+                        }
+                        case 'update': {
+                            const id = change.id;
+                            if (diagram.items[id]) {
+                                diagram.items[id] = {
+                                    ...diagram.items[id],
+                                    ...(change.fields || {})
+                                };
+                            }
+                            break;
+                        }
+                        case 'delete': {
+                            delete diagram.items[change.id];
+                            break;
+                        }
+                        default:
+                            console.warn('Unknown operation:', change.op);
+                    }
+                }
+
+                this.updateDiagram(diagram, true);
+                resolve();
+            } catch (err) {
+                console.error('applyExternalEdit error:', err);
+                reject(err);
+            }
+        });
     }
 
     /**

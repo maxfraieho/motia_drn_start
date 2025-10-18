@@ -1,3 +1,6 @@
+// ⚙️ Refactored for native drakonWidget API integration
+// All custom insertion logic replaced with official drakonwidget methods
+
 document.addEventListener('DOMContentLoaded', () => {
     const diagramNav = document.getElementById('diagram-nav');
     const drakonContainer = document.getElementById('drakon-container');
@@ -49,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let drakonWidget = null;
     let currentEditingItemId = null;
-    let lastAddedNodePosition = { x: 100, y: 100 };
     let currentCanvas = null;
     let zoomLevel = 1.0;
     let panState = {
@@ -60,13 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollTop: 0
     };
     let loadingTimeout = null;
-
-    // Insertion mode state
-    let insertionMode = {
-        active: false,
-        nodeType: null,
-        sockets: []
-    };
 
     // Initialize State Manager
     const stateManager = new DiagramStateManager();
@@ -632,63 +627,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Create edit sender (required for setDiagram)
+    // Delegates all edit operations to stateManager.applyExternalEdit()
     function createEditSender() {
         return {
             stop: function() {},
             pushEdit: function(edit) {
                 if (!stateManager.isEditMode()) {
                     console.log('Edit blocked (read-only mode):', edit);
-                    return;
+                    return Promise.resolve();
                 }
 
-                console.log('Edit received:', JSON.stringify(edit, null, 2));
+                console.log('Edit received from drakonWidget:', JSON.stringify(edit, null, 2));
 
-                // Apply edit to state manager
-                const currentDiagram = stateManager.getDiagramCopy();
-
-                // Handle changes array (DrakonWidget format)
-                if (edit.changes && Array.isArray(edit.changes)) {
-                    for (const change of edit.changes) {
-                        if (change.id) {
-                            // Item-level change
-                            switch (change.op) {
-                                case 'insert':
-                                    // Insert new item
-                                    currentDiagram.items[change.id] = change.fields;
-                                    break;
-                                case 'update':
-                                    // Update existing item
-                                    if (currentDiagram.items[change.id]) {
-                                        Object.assign(currentDiagram.items[change.id], change.fields);
-                                    }
-                                    break;
-                                case 'delete':
-                                    // Delete item
-                                    delete currentDiagram.items[change.id];
-                                    break;
-                                default:
-                                    console.warn('Unknown change operation:', change.op);
-                            }
-                        } else {
-                            // Diagram-level change
-                            Object.assign(currentDiagram, change.fields);
-                        }
-                    }
-                    stateManager.updateDiagram(currentDiagram, true);
-                    reloadCurrentDiagram();
-                } else {
-                    // Legacy format (single operation)
-                    if (edit.op === 'update' && edit.fields) {
-                        if (currentDiagram.items[edit.id]) {
-                            Object.assign(currentDiagram.items[edit.id], edit.fields);
-                            stateManager.updateDiagram(currentDiagram, true);
-                        }
-                    } else if (edit.op === 'delete') {
-                        stateManager.deleteItem(edit.id);
-                    } else {
-                        console.warn('Unknown edit operation:', edit);
-                    }
-                }
+                // Delegate to stateManager which handles insert/update/delete operations
+                return stateManager.applyExternalEdit(edit)
+                    .then(() => {
+                        console.log('Edit applied successfully');
+                    })
+                    .catch((err) => {
+                        console.error('Error applying edit:', err);
+                    });
             }
         };
     }
@@ -779,217 +737,9 @@ document.addEventListener('DOMContentLoaded', () => {
         closeSidebarOnMobile();
     }
 
-    // ==================== INSERTION SOCKET SYSTEM ====================
-
-    // Calculate insertion socket positions for a given node type
-    function calculateInsertionSockets(nodeType) {
-        const diagram = stateManager.getDiagram();
-        if (!diagram || !diagram.items) {
-            return [];
-        }
-
-        const sockets = [];
-        const items = diagram.items;
-
-        // For each node, find connection points
-        for (const itemId in items) {
-            const item = items[itemId];
-
-            // Socket after 'one' connection (next below)
-            if (item.one) {
-                const nextItem = items[item.one];
-                if (nextItem) {
-                    sockets.push({
-                        id: `socket_${itemId}_one`,
-                        beforeId: itemId,
-                        afterId: item.one,
-                        connection: 'one',
-                        position: {
-                            x: (item.x || 0),
-                            y: ((item.y || 0) + (nextItem.y || 0)) / 2
-                        }
-                    });
-                }
-            }
-
-            // Socket after 'two' connection (next right for branches)
-            if (item.two) {
-                const nextItem = items[item.two];
-                if (nextItem) {
-                    sockets.push({
-                        id: `socket_${itemId}_two`,
-                        beforeId: itemId,
-                        afterId: item.two,
-                        connection: 'two',
-                        position: {
-                            x: ((item.x || 0) + (nextItem.x || 0)) / 2,
-                            y: (item.y || 0)
-                        }
-                    });
-                }
-            }
-
-            // Socket at the end of a node without connections (except 'end' nodes)
-            if (!item.one && !item.two && item.type !== 'end') {
-                sockets.push({
-                    id: `socket_${itemId}_end`,
-                    beforeId: itemId,
-                    afterId: null,
-                    connection: 'one',
-                    position: {
-                        x: (item.x || 0),
-                        y: (item.y || 0) + 100
-                    }
-                });
-            }
-        }
-
-        return sockets;
-    }
-
-    // Render insertion sockets on the canvas
-    function renderInsertionSockets() {
-        if (!insertionMode.active || !currentCanvas) {
-            return;
-        }
-
-        const container = drakonContainer;
-
-        // Remove existing socket overlays
-        container.querySelectorAll('.insertion-socket').forEach(el => el.remove());
-
-        // Get canvas position and scale
-        const canvasRect = currentCanvas.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        insertionMode.sockets.forEach(socket => {
-            const socketEl = document.createElement('div');
-            socketEl.className = 'insertion-socket';
-            socketEl.dataset.socketId = socket.id;
-            socketEl.innerHTML = '+';
-            socketEl.title = 'Вставити вузол тут';
-
-            // Calculate position relative to container
-            const x = (socket.position.x * zoomLevel) + (canvasRect.left - containerRect.left);
-            const y = (socket.position.y * zoomLevel) + (canvasRect.top - containerRect.top);
-
-            socketEl.style.position = 'absolute';
-            socketEl.style.left = `${x}px`;
-            socketEl.style.top = `${y}px`;
-            socketEl.style.transform = 'translate(-50%, -50%)';
-
-            // Add click handler
-            socketEl.addEventListener('click', (e) => {
-                e.stopPropagation();
-                insertNodeAtSocket(socket);
-            });
-
-            container.appendChild(socketEl);
-        });
-    }
-
-    // Insert node at a specific socket position
-    function insertNodeAtSocket(socket) {
-        if (!insertionMode.active || !insertionMode.nodeType) {
-            return;
-        }
-
-        const diagram = stateManager.getDiagram();
-        if (!diagram || !diagram.items) {
-            return;
-        }
-
-        const nodeType = insertionMode.nodeType;
-
-        // Create new node at socket position
-        const newNode = {
-            type: nodeType,
-            content: nodeType === 'end' ? '' : `New ${nodeType}`,
-            branchId: 1,
-            x: socket.position.x,
-            y: socket.position.y
-        };
-
-        // Add the new node
-        const newId = stateManager.addItem(newNode);
-
-        if (newId) {
-            // Update connections
-            const beforeItem = diagram.items[socket.beforeId];
-
-            if (socket.afterId) {
-                // Insert between two nodes
-                // Update new node to point to after node
-                stateManager.updateItem(newId, { [socket.connection]: socket.afterId });
-                // Update before node to point to new node
-                stateManager.updateItem(socket.beforeId, { [socket.connection]: newId });
-            } else {
-                // Insert at the end
-                stateManager.updateItem(socket.beforeId, { [socket.connection]: newId });
-            }
-        }
-
-        // Deactivate insertion mode
-        deactivateInsertionMode();
-
-        // Reload diagram
-        reloadCurrentDiagram();
-    }
-
-    // Activate insertion mode
-    function activateInsertionMode(nodeType) {
-        if (!stateManager.isEditMode()) {
-            alert('Увімкніть режим редагування для додавання вузлів');
-            return;
-        }
-
-        const diagram = stateManager.getDiagram();
-        if (!diagram || !diagram.items) {
-            alert('Спочатку відкрийте або створіть діаграму');
-            return;
-        }
-
-        insertionMode.active = true;
-        insertionMode.nodeType = nodeType;
-        insertionMode.sockets = calculateInsertionSockets(nodeType);
-
-        // Render insertion sockets
-        renderInsertionSockets();
-
-        // Visual feedback - highlight active palette item
-        document.querySelectorAll('.icon-item').forEach(item => {
-            if (item.getAttribute('data-type') === nodeType) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-
-        // Add escape key handler to cancel insertion mode
-        const escapeHandler = (e) => {
-            if (e.key === 'Escape') {
-                deactivateInsertionMode();
-                document.removeEventListener('keydown', escapeHandler);
-            }
-        };
-        document.addEventListener('keydown', escapeHandler);
-    }
-
-    // Deactivate insertion mode
-    function deactivateInsertionMode() {
-        insertionMode.active = false;
-        insertionMode.nodeType = null;
-        insertionMode.sockets = [];
-
-        // Remove socket overlays
-        drakonContainer.querySelectorAll('.insertion-socket').forEach(el => el.remove());
-
-        // Remove active class from palette items
-        document.querySelectorAll('.icon-item').forEach(item => {
-            item.classList.remove('active');
-        });
-    }
-
+    // ==================== NODE INSERTION ====================
+    // Uses native drakonWidget.showInsertionSockets() API
+    //
     // Add new node using DrakonWidget's built-in insertion socket system
     function addNode(type) {
         if (!stateManager.isEditMode()) {
