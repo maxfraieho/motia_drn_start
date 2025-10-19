@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRAKON Generator Host</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f0f0;
+        }
+        #editor {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor"></div>
+
+    <!-- Load drakonWidget from local copy -->
+    <script src="/drakonwidget.js"></script>
+
+    <script>
+        // Initialize drakonWidget
+        let currentDiagram = null;
+        let widget = null;
+
+        // Create Testing API for programmatic diagram generation
+        window.DrakonTestAPI = {
+            createDiagram: function(name) {
+                currentDiagram = {
+                    name: String(name || 'Generated Diagram'),
+                    access: 'write',
+                    params: [],
+                    items: {
+                        '1': { type: 'branch', one: '2', branchId: 0, content: '' },
+                        '2': { type: 'action', content: 'Start', one: '3' },
+                        '3': { type: 'end', content: '' }
+                    }
+                };
+
+                // Initialize widget
+                const container = document.getElementById('editor');
+                if (widget) {
+                    // Clean up existing widget
+                    container.innerHTML = '';
+                }
+
+                const config = {
+                    drawZones: false,
+                    canSelect: false,
+                    canvasIcons: true,
+                    centerContent: true,
+                    textFormat: 'plain'
+                };
+
+                widget = drakonhub.createWidget(container, currentDiagram, config);
+
+                console.log('Diagram created:', name);
+                return true;
+            },
+
+            addNode: function(nodeType, content) {
+                if (!currentDiagram) {
+                    throw new Error('No diagram created. Call createDiagram first.');
+                }
+
+                // Generate new node ID
+                const existingIds = Object.keys(currentDiagram.items).map(id => parseInt(id));
+                const newId = String(Math.max(...existingIds) + 1);
+
+                const node = {
+                    type: nodeType || 'action',
+                    content: content || '',
+                };
+
+                // Add connection field based on type
+                if (nodeType !== 'end') {
+                    node.one = null;
+                }
+
+                if (nodeType === 'branch') {
+                    node.branchId = 0;
+                    node.two = null;
+                }
+
+                currentDiagram.items[newId] = node;
+
+                console.log('Node added:', newId, nodeType);
+                return newId;
+            },
+
+            setNodeContent: function(nodeId, content) {
+                if (!currentDiagram) {
+                    throw new Error('No diagram created.');
+                }
+
+                if (!currentDiagram.items[nodeId]) {
+                    throw new Error(`Node ${nodeId} not found.`);
+                }
+
+                currentDiagram.items[nodeId].content = String(content || '');
+                console.log('Node content set:', nodeId, content);
+                return true;
+            },
+
+            connectNodes: function(fromId, toId, branch) {
+                if (!currentDiagram) {
+                    throw new Error('No diagram created.');
+                }
+
+                const fromNode = currentDiagram.items[fromId];
+                if (!fromNode) {
+                    throw new Error(`Source node ${fromId} not found.`);
+                }
+
+                if (!currentDiagram.items[toId]) {
+                    throw new Error(`Target node ${toId} not found.`);
+                }
+
+                // Set connection
+                if (branch === 'two' && fromNode.type === 'branch') {
+                    fromNode.two = toId;
+                } else {
+                    fromNode.one = toId;
+                }
+
+                console.log('Nodes connected:', fromId, '->', toId, branch || 'one');
+                return true;
+            },
+
+            getDiagram: function() {
+                if (!currentDiagram) {
+                    throw new Error('No diagram created.');
+                }
+
+                return JSON.parse(JSON.stringify(currentDiagram));
+            },
+
+            saveDiagram: function() {
+                console.log('Diagram data:', JSON.stringify(currentDiagram, null, 2));
+                return currentDiagram;
+            }
+        };
+
+        console.log('DrakonTestAPI initialized and ready');
+    </script>
+</body>
+</html>

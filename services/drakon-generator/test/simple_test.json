@@ -1,0 +1,76 @@
+{
+  "commands": [
+    {
+      "type": "createDiagram",
+      "name": "Test Function Flow"
+    },
+    {
+      "type": "addNode",
+      "nodeType": "action"
+    },
+    {
+      "type": "setContent",
+      "nodeId": "4",
+      "content": "Validate Input"
+    },
+    {
+      "type": "addNode",
+      "nodeType": "branch"
+    },
+    {
+      "type": "setContent",
+      "nodeId": "5",
+      "content": "Is Valid?"
+    },
+    {
+      "type": "addNode",
+      "nodeType": "action"
+    },
+    {
+      "type": "setContent",
+      "nodeId": "6",
+      "content": "Process Data"
+    },
+    {
+      "type": "addNode",
+      "nodeType": "action"
+    },
+    {
+      "type": "setContent",
+      "nodeId": "7",
+      "content": "Return Error"
+    },
+    {
+      "type": "connectNodes",
+      "from": "2",
+      "to": "4"
+    },
+    {
+      "type": "connectNodes",
+      "from": "4",
+      "to": "5"
+    },
+    {
+      "type": "connectNodes",
+      "from": "5",
+      "to": "6",
+      "branch": "one"
+    },
+    {
+      "type": "connectNodes",
+      "from": "5",
+      "to": "7",
+      "branch": "two"
+    },
+    {
+      "type": "connectNodes",
+      "from": "6",
+      "to": "3"
+    },
+    {
+      "type": "connectNodes",
+      "from": "7",
+      "to": "3"
+    }
+  ]
+}

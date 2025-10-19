@@ -138,6 +138,93 @@ Develop an AI-enhanced algorithm that can:
 
 ---
 
+### 7. **CRITICAL:** DrakonWidget API Integration for Native Diagram Generation
+**Question:** How can we use drakonWidget's internal API to programmatically generate diagrams instead of manually constructing JSON?
+
+**Background:**
+Currently, our system manually constructs JSON diagram structures:
+```json
+{
+  "name": "example",
+  "items": {
+    "1": {"type": "branch", "one": "2", "content": ""},
+    "2": {"type": "action", "content": "Do something", "one": "3"}
+  }
+}
+```
+
+However, `drakonwidget.js` (created by Stepan Mitkin, author of DRAKON) contains internal functions for creating diagram elements:
+- `createNode(visuals, itemId, type, content, id)`
+- `createNewItem(model, type)`
+- `buildDiagramModel(widget, diagram)`
+- `addItemToModel(model, item)`
+
+**Areas to explore:**
+
+1. **Headless DrakonWidget Usage**
+   - Can drakonWidget run in Node.js (server-side) for diagram generation?
+   - Which DOM dependencies can be mocked/eliminated?
+   - How to extract diagram JSON after programmatic construction?
+
+2. **API Discovery & Documentation**
+   - Reverse-engineer drakonWidget's public/private API
+   - Identify minimal API surface for programmatic diagram creation
+   - Document parameter formats and validation rules
+
+3. **Compatibility with Stepan Mitkin's Editors**
+   - Desktop DRAKON Editor (.drn format) compatibility
+   - DrakonHub online editor compatibility
+   - Ensure generated JSON matches official spec
+
+4. **Programmatic Diagram Construction Flow**
+   ```
+   Code AST → Semantic Analysis → DrakonWidget API calls → Native JSON
+   ```
+   Instead of:
+   ```
+   Code AST → Semantic Analysis → Manual JSON construction → Hope it's valid
+   ```
+
+5. **API-Based Node Creation**
+   - How to create nodes programmatically using drakonWidget API?
+   - How to connect nodes (one, two, three branches)?
+   - How to set node properties (content, type, coordinates)?
+   - How to validate diagram structure before export?
+
+6. **Canvas Rendering vs. JSON Generation**
+   - Can we use drakonWidget API without rendering to canvas?
+   - Extract diagram model after API manipulation
+   - Validate diagram completeness (all branches connected, etc.)
+
+**Key Questions:**
+1. Is there a documented API in drakonWidget for programmatic diagram creation?
+2. Can we use `window.DrakonTestAPI` approach server-side (Node.js)?
+3. How does Stepan Mitkin's desktop editor generate .drn files? Can we replicate this?
+4. Would using drakonWidget API guarantee 100% compatibility with official editors?
+5. What's the performance cost of running drakonWidget server-side vs manual JSON?
+
+**Expected Benefits:**
+- ✅ **Guaranteed compatibility** with official DRAKON tools
+- ✅ **Automatic validation** (drakonWidget won't create invalid diagrams)
+- ✅ **Future-proof** (updates to drakonWidget automatically propagate)
+- ✅ **Correct layout metadata** (positions, connections, etc.)
+- ✅ **Support for advanced features** (parameters, comments, etc.)
+
+**Implementation Questions:**
+- How to integrate drakonWidget API into `code_to_drakon.py`?
+- Should we use PyExecJS to run drakonWidget from Python?
+- Or create a Node.js microservice for diagram generation?
+- How to handle diagram layout (auto-layout vs. manual positioning)?
+
+**Deliverable:**
+- Architecture for drakonWidget-based diagram generation
+- API reference for programmatic node creation
+- Compatibility validation strategy
+- Performance comparison (API vs. manual JSON)
+- Migration plan from current manual JSON to API-based generation
+
+---
+
 ## Technical Constraints
 
 **Must Support:**
@@ -205,6 +292,60 @@ Develop an AI-enhanced algorithm that can:
    - Phased rollout plan
 
 ## Example Code Samples for Testing
+
+### Sample 0: Current vs. API-Based Diagram Generation
+
+**Current Approach (Manual JSON Construction):**
+```python
+# tools/drakon/converter/drakon_to_json.py
+def generate_diagram_json(function_name, nodes):
+    diagram = {
+        "name": function_name,
+        "access": "write",
+        "params": [],
+        "items": {}
+    }
+
+    # Manually build items dict
+    node_id = 1
+    for node in nodes:
+        diagram["items"][str(node_id)] = {
+            "type": node.type,  # "action", "branch", "end"
+            "content": node.content,
+            "one": str(node_id + 1) if node.next else None
+        }
+        node_id += 1
+
+    return json.dumps(diagram)
+```
+
+**Proposed API-Based Approach:**
+```javascript
+// Using drakonWidget API (if we can run it server-side)
+const drakonGenerator = require('./drakonwidget-headless');
+
+function generateDiagramViaAPI(functionName, nodes) {
+  const diagram = drakonGenerator.createDiagram(functionName);
+
+  nodes.forEach((node, index) => {
+    const nodeId = drakonGenerator.addNode(diagram, {
+      type: node.type,
+      content: node.content,
+      connectTo: nodes[index + 1]?.id
+    });
+
+    // drakonWidget validates structure automatically!
+  });
+
+  return drakonGenerator.exportJSON(diagram);
+  // Guaranteed compatible with Stepan Mitkin's editors!
+}
+```
+
+**Question for Research:**
+Is the API-based approach feasible? What are the technical barriers? How can we overcome them?
+
+---
 
 ### Sample 1: TypeScript Event Handler (Current: 4 nodes → Target: 15+ nodes)
 ```typescript
@@ -294,11 +435,14 @@ def process_workflow(state_machine, input_data):
 - 2x increase in average diagram nodes for complex functions
 - 90%+ control flow path coverage
 - Maintains or improves readability scores
+- **100% compatibility with Stepan Mitkin's DRAKON editors**
 
 **Stretch Goals:**
 - AI-generated node descriptions match human intent (>80% similarity)
 - Automatic detection of 15+ design patterns
 - Multi-level diagram generation (overview → detailed zoom)
+- **Headless drakonWidget integration for guaranteed valid diagrams**
+- **Support for .drn format export (desktop editor compatibility)**
 
 ## Additional Context
 
@@ -328,6 +472,17 @@ Developer writes code → unified-motia-workflow.sh drakon <step_name>
 - Sample diagrams (current output examples)
 - Gemini AI Pro API access
 - Compute resources for model training (if needed)
+- **drakonwidget.js** - Official DRAKON rendering library by Stepan Mitkin
+- **Existing Testing API** in app.js:
+  ```javascript
+  window.DrakonTestAPI = {
+    createDiagram: (name) => {...},
+    addNode: (type) => {...},
+    getDiagram: () => {...},
+    saveDiagram: () => {...}
+  }
+  ```
+- Access to DRAKON community resources and documentation
 
 ## Timeline
 
@@ -372,7 +527,31 @@ Code samples, algorithm pseudocode, references
 - Integration with existing DRAKON ecosystem
 - Backward compatibility with current diagrams
 - Extensibility for future programming languages
+- **🔥 HIGHEST PRIORITY: Feasibility analysis of drakonWidget API integration (Question 7)**
 
 ---
 
-**Research Start:** Please begin with Question 1 (Code Semantic Analysis) and provide detailed findings before moving to subsequent questions.
+## ⚠️ CRITICAL PRIORITY: Question 7 (DrakonWidget API)
+
+**Please prioritize Question 7** as it has the highest impact on system architecture:
+
+If we can successfully integrate drakonWidget API for diagram generation, this would:
+1. **Solve compatibility issues** with official DRAKON editors permanently
+2. **Reduce maintenance burden** (no need to track format changes)
+3. **Guarantee correctness** (drakonWidget validates structure)
+4. **Enable advanced features** (auto-layout, .drn export, etc.)
+
+**Recommended Research Flow:**
+1. Start with Question 7 - determine if API integration is feasible
+2. If YES → Design architecture around drakonWidget API
+3. If NO → Proceed with Questions 1-6 for manual JSON improvements
+4. Combine both approaches if partial integration is possible
+
+**Key Deliverable for Question 7:**
+- Proof-of-concept code showing drakonWidget creating a simple diagram headless
+- OR explanation of technical barriers and workarounds
+- Performance benchmark: API vs. manual JSON
+
+---
+
+**Research Start:** Please begin with **Question 7 (DrakonWidget API Integration)** as the critical path determinant, then proceed to Question 1 and subsequent questions.

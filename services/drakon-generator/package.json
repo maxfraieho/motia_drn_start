@@ -1,0 +1,20 @@
+{
+  "name": "drakon-generator",
+  "version": "1.0.0",
+  "description": "**Status:** 🚧 Proof of Concept (Not yet implemented) **Purpose:** Generate valid DRAKON diagrams using official drakonWidget.js API via headless browser **Architecture:** Node.js + Express.js + Puppeteer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0",
+    "puppeteer": "^24.25.0",
+    "winston": "^3.18.3"
+  }
+}
